@@ -37,6 +37,9 @@ foreach fl of local flname {
     cap drop if _reporttype=="O" 
 	cap drop if _reporttype=="Q3*" 
 	cap drop if _adjflg==0
+	cap drop if a_a_stkcd>=400000 & a_a_stkcd< 600000
+	cap drop if a_a_stkcd>=900000
+	drop if missing( a_a_stkcd )
 	cap gen _conflg=1
 	
     gen mid=trim(_comcd)+"_"+ string(_conflg)+ "_" + substr(_reporttype,1,2) + "_"+ trim(_enddt) 

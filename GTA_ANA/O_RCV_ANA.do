@@ -45,30 +45,54 @@ pwcorr O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO,sig
 tabstat O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO,s(min max mean p25 median p50 sd) c(s) f(%8.2f)
 
 
+//SOE  O_RCV Stock model
+xi:reg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.FY i.dindc if i_PL4nonControl~=0 & soetag==1,robust
+est store OLS_SOE_STOCK
+xtreg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0 & soetag==1,fe
+est store FE_SOE_STOCK
+xtreg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO soetag if i_PL4nonControl~=0 & soetag==1,re 
+est store RE_SOE_STOCK
+hausman FE_SOE_STOCK RE_SOE_STOCK
 
-xi:reg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.FY soetag i.dindc if i_PL4nonControl~=0
-est store OLS
-xtreg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0,fe
-est store FE
-xtreg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO soetag if i_PL4nonControl~=0,re 
-est store RE
-hausman FE RE
 
-//reg or (FY#dindc)##(c.LTI_RO c.LN_TA  c.ASSE_TO c.DEBT_RO),noconst
-//predict lteor,res
+//SOE  O_RCV FLOW  model
+xi:reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.FY i.soetag if i_PL4nonControl~=0 & soetag==1
+est store OLS_SOE_FLOW_YEAR
+xi:reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.dindc i.soetag if i_PL4nonControl~=0 & soetag==1
+est store OLS_SOE_FLOW_IND
 
-xi:reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.FY i.soetag if i_PL4nonControl~=0
-est store OLS_YEAR
-xi:reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.dindc i.soetag if i_PL4nonControl~=0
-est store OLS_IND
+reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO if i_PL4nonControl~=0 & soetag==1
+est store OLS_SOE_FLOW
+xtreg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0 & soetag==1,fe
+est store FE_SOE_FLOW
+xtreg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0 & soetag==1,re 
+est store REFE_SOE_FLOW
+hausman FE_SOE_FLOW RE_SOE_FLOW
 
-reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO if i_PL4nonControl~=0
-est store OLS
-xtreg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0,fe
-est store FE
-xtreg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0,re 
-est store RE
-hausman FE RE
+//NONSOE D_O_RCV STOCK model 
+xi:reg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.FY i.dindc if i_PL4nonControl~=0 & soetag==0,robust
+est store OLS_NONSOE_STOCK
+xtreg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0 & soetag==0,fe
+est store FE_NONSOE_STOCK
+xtreg O_RCV_RO_L LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO soetag if i_PL4nonControl~=0 & soetag==0,re 
+est store RE_NONSOE_STOCK
+hausman FE_NONSOE_STOCK RE_NONSOE_STOCK
+
+//NONSOE D_O_RCV FLOW model
+
+xi:reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.FY i.soetag if i_PL4nonControl~=0 & soetag==0
+est store OLS_NONSOE_FLOW_YEAR
+xi:reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.dindc i.soetag if i_PL4nonControl~=0 & soetag==0
+est store OLS_NONSOE_FLOW_YEAR_IND
+
+reg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO if i_PL4nonControl~=0 & soetag==0
+est store OLS_NONSOE_FLOW_YEAR
+xtreg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0 & soetag==0,fe
+est store FE_NONSOE_FLOW_YEAR
+xtreg O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO  if i_PL4nonControl~=0 & soetag==0,re 
+est store RE_NONSOE_FLOW_YEAR
+hausman FE_NONSOE_FLOW_YEAR RE_NONSOE_FLOW_YEAR
+
 
 
 reg LN_SUBPL LN_O_RCV LN_TA ASSE_TO LN_LTI if i_PL4nonControl~=0

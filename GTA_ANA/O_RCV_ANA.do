@@ -1,4 +1,4 @@
-cd C:\programs\STATA12X64\ado\personal\gta\data
+cd C:\programs\data\GTA
 use GTA_FS,clear
 keep if substr(accper,6,2)=="12"
 drop if statco~=1

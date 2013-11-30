@@ -26,6 +26,7 @@ gen ASSE_TO1 = 2*i_TOPincome/(L.b_TA+b_TA)
 gen LN_SUBPL1=ln(i_PL4nonControl)
 gen LN_LTI1	=ln(L.b_LTEquityinvest)
 gen LN_O_RCV1	=ln(L.b_otherRCV)
+gen LN_D_O_RCV1	=ln(D.b_otherRCV)
 
 winsor LTI_RO1,gen(LTI_RO) p(0.05) 
 winsor LN_TA1,gen(LN_TA) p(0.05)
@@ -36,11 +37,22 @@ winsor ASSE_TO1,gen(ASSE_TO) p(0.05)
 winsor LN_SUBPL1,gen(LN_SUBPL) p(0.05)
 winsor LN_LTI1,gen(LN_LTI) p(0.05)
 winsor LN_O_RCV1,gen(LN_O_RCV) p(0.05)
+winsor LN_D_O_RCV1,gen(LN_D_O_RCV) p(0.05)
+
 xtbalance,range(2,7)
 
 pwcorr O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO,sig 
 tabstat O_RCV_RO LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO,s(min max mean p25 median p50 sd) c(s) f(%8.2f)
 
+
+
+xi:reg LN_D_O_RCV LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO i.FY if i_PL4nonControl~=0
+est store OLS
+xtreg LN_D_O_RCV LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO if i_PL4nonControl~=0,fe
+est store FE
+xtreg LN_D_O_RCV LTI_RO  LN_TA ASSE_TO DEBT_RO RCV_TO if i_PL4nonControl~=0,re 
+est store RE
+hausman FE RE
 
 //reg or (FY#dindc)##(c.LTI_RO c.LN_TA  c.ASSE_TO c.DEBT_RO),noconst
 //predict lteor,res

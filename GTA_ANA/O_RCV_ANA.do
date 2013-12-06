@@ -23,10 +23,11 @@ gen LTI_RO1 = 2*b_LTEquityinvest/(L.b_TA+b_TA)
 gen LN_TA1 = ln(b_TA)
 gen DEBT_RO1 = 2*b_TLiab/(L.b_TA+b_TA)
 gen ASSE_TO1 = 2*i_TOPincome/(L.b_TA+b_TA)
-gen LN_SUBPL1=ln(i_PL4nonControl)
+gen LN_SUBPL1=i_PL4nonControl/L.b_LTEquityinvest
 gen LN_LTI1	=ln(L.b_LTEquityinvest)
 gen LN_O_RCV1	=ln(L.b_otherRCV)
 gen O_RCV_RO2	=b_otherRCV/T_RCV
+gen D_RCV_RO1 = D.b_otherRCV
 
 winsor LTI_RO1,gen(LTI_ro) p(0.05) 
 winsor LN_TA1,gen(ln_TA) p(0.05)
@@ -34,10 +35,11 @@ winsor O_RCV_RO1,gen(O_RCV_flow) p(0.05)
 winsor RCV_TO1,gen(RCV_to) p(0.05)
 winsor DEBT_RO1,gen(DEBT_ro) p(0.05)
 winsor ASSE_TO1,gen(TA_to) p(0.05)
-winsor LN_SUBPL1,gen(ln_SUBPL) p(0.05)
+winsor LN_SUBPL1,gen(SUBPL_roe) p(0.05)
 winsor LN_LTI1,gen(ln_LTI) p(0.05)
 winsor LN_O_RCV1,gen(ln_O_RCV) p(0.05)
 winsor O_RCV_RO2,gen(O_RCV_stock) p(0.05)
+winsor O_RCV_RO2,gen(d_O_RCV) p(0.05)
 
 xtbalance,range(2,7)
 
@@ -94,13 +96,12 @@ est store RE_NONSOE_FLOW_YEAR
 hausman FE_NONSOE_FLOW_YEAR RE_NONSOE_FLOW_YEAR
 
 
+reg SUBPL_roe L.O_RCV_flow   ln_TA TA_to ln_LTI   if i_PL4nonControl~=0 & soetag==0,vce(cluster stkcd)
 
-reg ln_SUBPL ln_O_RCV ln_TA TA_to ln_LTI if i_PL4nonControl~=0
+reg SUBPL_roe L.O_RCV_stock   ln_TA TA_to ln_LTI   if i_PL4nonControl~=0 & soetag==0,vce(cluster stkcd)
 
-xtreg ln_SUBPL ln_O_RCV ln_TA TA_to ln_LTI FY if i_PL4nonControl~=0,fe
-est store fe
-xtreg ln_SUBPL ln_O_RCV ln_TA TA_to ln_LTI  FY if i_PL4nonControl~=0,re 
-est store re
-hausman fe re
+xtreg SUBPL_roe L.O_RCV_stock  ln_TA TA_to DEBT_ro ln_LTI  if i_PL4nonControl~=0 & soetag==0,fe
+
+xtreg SUBPL_roe L.O_RCV_flow  ln_TA TA_to DEBT_ro ln_LTI  if i_PL4nonControl~=0 & soetag==0,fe 
 
 

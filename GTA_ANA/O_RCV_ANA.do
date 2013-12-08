@@ -35,7 +35,7 @@ winsor O_RCV_RO1,gen(O_RCV_flow) p(0.05)
 winsor RCV_TO1,gen(RCV_to) p(0.05)
 winsor DEBT_RO1,gen(DEBT_ro) p(0.05)
 winsor ASSE_TO1,gen(TA_to) p(0.05)
-winsor LN_SUBPL1,gen(SUBPL_roe) p(0.05)
+winsor LN_SUBPL1,gen(SUB_roe) p(0.05)
 winsor LN_LTI1,gen(ln_LTI) p(0.05)
 winsor LN_O_RCV1,gen(ln_O_RCV) p(0.05)
 winsor O_RCV_RO2,gen(O_RCV_stock) p(0.05)
@@ -43,8 +43,10 @@ winsor O_RCV_RO2,gen(d_O_RCV) p(0.05)
 
 xtbalance,range(2,7)
 
-pwcorr O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to,sig 
-tabstat O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to,s(min max mean p25 median p50 sd) c(s) f(%8.2f)
+
+logout, save(o_rcv_descriptives) excel replace: ///tabstat O_RCV_stock  O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to SUB_roe,s(min max mean median sd) c(s) f(%6.2f)
+logout, save(o_rcv_corr) excel replace: ///
+pwcorr O_RCV_stock  O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to SUB_roe, sig
 
 
 //SOE  O_RCV Stock model
@@ -100,24 +102,24 @@ tab FY,gen(dum_FY)
 drop dum_FY1
 drop dum_dind1
 
-ivreg2 SUBPL_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==0,gmm2s robust
-ivreg2  SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==0,gmm2s robust
-ivreg2 SUBPL_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==1,gmm2s robust
-ivreg2  SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==1,gmm2s robust
+ivreg2 SUB_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==0,gmm2s robust
+ivreg2  SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==0,gmm2s robust
+ivreg2 SUB_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==1,gmm2s robust
+ivreg2  SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==1,gmm2s robust
 
 
-xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc if i_PL4nonControl~=0 & soetag==0,re
+xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc if i_PL4nonControl~=0 & soetag==0,re
 est store re
-xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) if i_PL4nonControl~=0 & soetag==0,fe
+xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) if i_PL4nonControl~=0 & soetag==0,fe
 est store fe
 hausman fe re
 
-xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc i.soetag if i_PL4nonControl~=0 ,re
+xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc i.soetag if i_PL4nonControl~=0 ,re
 est store re
-xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.soetag if i_PL4nonControl~=0 ,fe
+xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.soetag if i_PL4nonControl~=0 ,fe
 est store fe
 hausman fe re
 
-xtreg SUBPL_roe O_RCV_flow L.O_RCV_flow  ln_TA TA_to DEBT_ro ln_LTI  if i_PL4nonControl~=0 & soetag==0,fe 
+xtreg SUB_roe O_RCV_flow L.O_RCV_flow  ln_TA TA_to DEBT_ro ln_LTI  if i_PL4nonControl~=0 & soetag==0,fe 
 
 

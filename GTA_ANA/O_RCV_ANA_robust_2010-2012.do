@@ -46,7 +46,7 @@ winsor LN_O_RCV1,gen(ln_O_RCV) p(0.05)
 winsor O_RCV_RO2,gen(O_RCV_stock) p(0.05)
 winsor O_RCV_RO2,gen(d_O_RCV) p(0.05)
 
-xtbalance,range(2,7)
+xtbalance,range(5,7)
 
 
 *****************************************************Descriptive Stat & Correlations****************************************************************************

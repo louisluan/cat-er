@@ -95,13 +95,29 @@ xtreg O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to  if i_PL4nonControl~=0 & soe
 est store RE_NONSOE_FLOW_YEAR
 hausman FE_NONSOE_FLOW_YEAR RE_NONSOE_FLOW_YEAR
 
+tab dindc,gen(dum_dind)
+tab FY,gen(dum_FY)
+drop dum_FY1
+drop dum_dind1
 
-reg SUBPL_roe L.O_RCV_flow   ln_TA TA_to ln_LTI   if i_PL4nonControl~=0 & soetag==0,vce(cluster stkcd)
+ivreg2 SUBPL_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==0,gmm2s robust
+ivreg2  SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==0,gmm2s robust
+ivreg2 SUBPL_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==1,gmm2s robust
+ivreg2  SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) dum_dind* dum_FY* if i_PL4nonControl~=0 & soetag==1,gmm2s robust
 
-reg SUBPL_roe L.O_RCV_stock   ln_TA TA_to ln_LTI   if i_PL4nonControl~=0 & soetag==0,vce(cluster stkcd)
 
-xtreg SUBPL_roe L.O_RCV_stock  ln_TA TA_to DEBT_ro ln_LTI  if i_PL4nonControl~=0 & soetag==0,fe
+xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc if i_PL4nonControl~=0 & soetag==0,re
+est store re
+xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) if i_PL4nonControl~=0 & soetag==0,fe
+est store fe
+hausman fe re
 
-xtreg SUBPL_roe L.O_RCV_flow  ln_TA TA_to DEBT_ro ln_LTI  if i_PL4nonControl~=0 & soetag==0,fe 
+xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc i.soetag if i_PL4nonControl~=0 ,re
+est store re
+xtivreg SUBPL_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.soetag if i_PL4nonControl~=0 ,fe
+est store fe
+hausman fe re
+
+xtreg SUBPL_roe O_RCV_flow L.O_RCV_flow  ln_TA TA_to DEBT_ro ln_LTI  if i_PL4nonControl~=0 & soetag==0,fe 
 
 

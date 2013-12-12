@@ -18,7 +18,7 @@ foreach fl of local flname {
   insheet using `fl'.csv,name clear
   cap drop if strpos(accper,"/1/1")>0
 
-  do `progdir'`fl'_labels.do
+  do `progdir'`fl'_labels.do //no space between to locals
    qui ds
   foreach v of varlist `r(varlist)' {
   local tmp:variable label `v'
@@ -31,7 +31,7 @@ foreach fl of local flname {
   
   }
    
-  do `progdir'`fl'_ren.do
+  do `progdir'`fl'_ren.do //no space between to locals
   drop if stkcd> 900000
   drop if stkcd> 200000 & stkcd < 290000
   cap gen mid=string(stkcd) + "_" + accper + "_" +  typrep

@@ -1,0 +1,12 @@
+
+label variable markettype	"[市场类型]5=综合A股市场,10=综合B股市场,15=综合AB股市场,21=综合A股和创业板,31=综合AB股和创业板"
+label variable trdwnt	"[交易周份]以YYYY-MM表示"
+label variable cwretwdeq	"[考虑现金红利再投资的综合周市场回报率(等权平均法)]字段说明见“回报率计算方法”"
+label variable cwretmdeq	"[不考虑现金红利再投资的综合周市场回报率(等权平均法)]字段说明见“回报率计算方法”"
+label variable cwretwdos	"[考虑现金红利再投资的综合周市场回报率(流通市值加权平均法)]字段说明见“回报率计算方法”"
+label variable cwretmdos	"[不考虑现金红利再投资的综合周市场回报率(流通市值加权平均法)]字段说明见“回报率计算方法”"
+label variable cwretwdtl	"[考虑现金红利再投资的综合周市场回报率(总市值加权平均法)]字段说明见“回报率计算方法”"
+label variable cwretmdtl	"[不考虑现金红利再投资的综合周市场回报率(总市值加权平均法)]字段说明见“回报率计算方法”"
+label variable cwnstkcal	"[计算综合周市场回报率的有效公司数量]上周和今周皆有交易为有效公司"
+label variable cwmvosd	"[综合周市场总流通市值]周内所有个股的流通市值（流通股数*周收盘价）汇总数"
+label variable cwmvttl	"[综合周市场总市值]周内所有个股的总市值（发行总股数*周收盘价）汇总数"

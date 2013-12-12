@@ -1,0 +1,6 @@
+label variable nrr1 "[无风险利率基准]NRI01=定期-整存整取-一年利率；TBC=国债票面利率"
+label variable clsdt "[统计日期]统计截止日期，YYYY-MM-DD"
+label variable nrrdata "[无风险利率(%)]"
+label variable nrrdaydt "[日度化无风险利率(%)]根据复利计算方法，将年度的无风险利率转化为日度数据"
+label variable nrrwkdt "[周度化无风险利率(%)]根据复利计算方法，将年度的无风险利率转化为周度数据"
+label variable nrrmtdt "[月度化无风险利率(%)]根据复利计算方法，将年度的无风险利率转化为月度数据"

@@ -15,7 +15,7 @@ use RETDATA.dta,clear
 encode trdwnt,gen(trdwks)
 drop if markettype==2 | markettype==8
 drop if statco=="D" | statco=="S"
-drop if trdwks<300 // drop return data for the year 2006 
+drop if trdwks<350 // drop return data for the year 2006 
 drop trdwks
 encode trdwnt,gen(weeknum)
 egen compid=group(stkcd)
@@ -44,3 +44,6 @@ reg difr _b_mwr_a //cross-sectional regression
 restore
 test _cons //test alpha==0
 test _b_mwr_a=difm[1] //test r==0
+
+
+

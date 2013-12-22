@@ -20,8 +20,17 @@ drop d_ind1
 xtset stkcd FY
 xtbalance,range(1,7)
 
+
+foreach v of varlist b_noteRCV b_accountRCV b_interestRCV b_dividendRCV b_otherRCV b_TA b_TLiab i_TOPincome{
+	replace `v'=0 if `v'==.
+}
+
+
+
 gen T_RCV = b_noteRCV+b_accountRCV+ b_interestRCV +b_dividendRCV+ b_otherRCV
+
 gen D_T_RCV = D.b_noteRCV+D.b_accountRCV+ D.b_interestRCV +D.b_dividendRCV+ D.b_otherRCV
+
 gen RCV_TO1=2*i_OPincome/(b_noteRCV+b_accountRCV+L.b_noteRCV+L.b_accountRCV)
 gen O_RCV_RO1 = D.b_otherRCV/D_T_RCV
 gen LTI_RO1 = 2*b_LTEquityinvest/(L.b_TA+b_TA)
@@ -33,6 +42,7 @@ gen LN_LTI1	=ln(L.b_LTEquityinvest)
 gen LN_O_RCV1	=ln(L.b_otherRCV)
 gen O_RCV_RO2	=b_otherRCV/T_RCV
 gen D_RCV_RO1 = D.b_otherRCV
+gen ROE1=i_netprofit/b_TOE
 
 winsor LTI_RO1,gen(LTI_ro) p(0.05) 
 winsor LN_TA1,gen(ln_TA) p(0.05)
@@ -45,7 +55,7 @@ winsor LN_LTI1,gen(ln_LTI) p(0.05)
 winsor LN_O_RCV1,gen(ln_O_RCV) p(0.05)
 winsor O_RCV_RO2,gen(O_RCV_stock) p(0.05)
 winsor O_RCV_RO2,gen(d_O_RCV) p(0.05)
-
+winsor ROE1,gen(ROE) p(0.05)
 xtbalance,range(2,7)
 
 
@@ -59,41 +69,41 @@ pwcorr O_RCV_stock  O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to SUB_roe, sig
 **********************************************************Hypothesis 1***********************************************************************
 *-------------------  ----------------------SOE Block--------------------   -------------------------------------
 //SOE  O_RCV Stock model
-xi:reg O_RCV_stock LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==1,robust
+xi:reg O_RCV_stock LTI_ro   ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==1,robust
 est store OLS_SOE_STOCK
-xtreg O_RCV_stock LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to   if soetag==1,fe 
+xtreg O_RCV_stock LTI_ro   ln_TA TA_to DEBT_ro RCV_to   if soetag==1,fe 
 est store FE_SOE_STOCK
-xtreg O_RCV_stock LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to   if soetag==1,re 
+xtreg O_RCV_stock LTI_ro   ln_TA TA_to DEBT_ro RCV_to   if soetag==1,re 
 est store RE_SOE_STOCK
 hausman FE_SOE_STOCK RE_SOE_STOCK
 
 
 //SOE  O_RCV FLOW  model
-xi:reg O_RCV_flow LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==1,robust
-est store OLS_SOE_FLOW_
-xtreg O_RCV_flow LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to if soetag==1,fe 
+xi:reg O_RCV_flow LTI_ro   ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==1,robust
+est store OLS_SOE_FLOW
+xtreg O_RCV_flow LTI_ro   ln_TA TA_to DEBT_ro RCV_to if soetag==1,fe 
 est store FE_SOE_FLOW
-xtreg O_RCV_flow LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to  if soetag==1,re 
+xtreg O_RCV_flow LTI_ro   ln_TA TA_to DEBT_ro RCV_to  if soetag==1,re 
 est store RE_SOE_FLOW
 hausman FE_SOE_FLOW RE_SOE_FLOW
 
 *----------------         ------------------------- NonSOE BLOCK         -----------------------           ------------------------------------------
 //NONSOE  O_RCV Stock model
-xi:reg O_RCV_stock LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==0,robust
+xi:reg O_RCV_stock LTI_ro   ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==0,robust
 est store OLS_NONSOE_STOCK
-xtreg O_RCV_stock LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to   if soetag==0,fe 
+xtreg O_RCV_stock LTI_ro   ln_TA TA_to DEBT_ro RCV_to   if soetag==0,fe 
 est store FE_NONSOE_STOCK
-xtreg O_RCV_stock LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to   if soetag==0,re 
+xtreg O_RCV_stock LTI_ro   ln_TA TA_to DEBT_ro RCV_to   if soetag==0,re 
 est store RE_NONSOE_STOCK
 hausman FE_NONSOE_STOCK RE_NONSOE_STOCK
 
 
 //NONSOE  O_RCV FLOW  model
-xi:reg O_RCV_flow LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==0,robust
+xi:reg O_RCV_flow LTI_ro   ln_TA TA_to DEBT_ro RCV_to i.FY i.dindc if soetag==0,robust
 est store OLS_NONSOE_FLOW_
-xtreg O_RCV_flow LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to  if  soetag==0,fe 
+xtreg O_RCV_flow LTI_ro   ln_TA TA_to DEBT_ro RCV_to  if  soetag==0,fe 
 est store FE_NONSOE_FLOW
-xtreg O_RCV_flow LTI_ro L.SUB_roe ln_TA TA_to DEBT_ro RCV_to  if  soetag==0,re 
+xtreg O_RCV_flow LTI_ro   ln_TA TA_to DEBT_ro RCV_to  if  soetag==0,re 
 est store RE_NONSOE_FLOW
 hausman FE_NONSOE_FLOW RE_NONSOE_FLOW
 
@@ -109,14 +119,14 @@ logout, save(median_SUB_roe) excel replace: ///
 	median SUB_roe,by(soetag)
 
 *----------------         ------------------------- OLS BLOCK         -----------------------           ------------------------------------------
-reg SUB_roe  L.O_RCV_stock ln_TA  DEBT_ro TA_to RCV_to  d_ind* d_fy* if  soetag==0,robust
+reg SUB_roe  L.O_RCV_stock ln_TA  DEBT_ro TA_to RCV_to ROE d_ind* d_fy* if  soetag==0,robust
 est store ROE_OLS_NONSOE
-reg SUB_roe  L.O_RCV_stock ln_TA  DEBT_ro TA_to RCV_to  d_ind* d_fy* if  soetag==1,robust
+reg SUB_roe  L.O_RCV_stock ln_TA  DEBT_ro TA_to RCV_to ROE  d_ind* d_fy* if  soetag==1,robust
 est store ROE_OLS_SOE
 *----------------         ------------------------- Two stage GMM BLOCK        -----------------------           ------------------------------------------
-ivreg2 SUB_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) d_ind* d_fy* if  soetag==0,gmm2s robust
+ivreg2 SUB_roe   ln_TA  DEBT_ro TA_to RCV_to ROE (L.O_RCV_stock=L.ln_LTI ) d_ind* d_fy* if  soetag==0,gmm2s robust
 est store ROE_GMM2S_NONSOE
-ivreg2 SUB_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) d_ind* d_fy* if  soetag==1,gmm2s robust
+ivreg2 SUB_roe   ln_TA  DEBT_ro TA_to RCV_to ROE (L.O_RCV_stock=L.ln_LTI ) d_ind* d_fy* if  soetag==1,gmm2s robust
 est store ROE_GMM2S_SOE
 
 
@@ -128,9 +138,9 @@ est store NONSOE_IV_FE
 xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI )  if  soetag==1,re
 est store SOE_IV_FE
 
-xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc i.FY if  soetag==1,fe
+xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) if  soetag==1,fe
 est store SOE_IV_FE
-xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc i.FY if  soetag==1,re
+xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) if  soetag==1,re
 est store SOE_IV_RE
 
 xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.dindc i.soetag ,re
@@ -139,6 +149,12 @@ xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) i.soetag 
 est store fe
 hausman fe re
 */
+bys FY:egen m_SUB_roe=mean(SUB_roe)
+egen m=mean(m_SUB_roe)
+label  var m_SUB_roe "子公司年度平均ROE"
+label  var m  "子公司总平均ROE"
+twoway (tsline m_SUB_roe, recast(connected)), ylabel(, labsize(vsmall)) tlabel(, labels labsize(vsmall) valuelabel ticks) legend(size(tiny)) scheme(s1mono) yline(0.0408)
+
 
 
 

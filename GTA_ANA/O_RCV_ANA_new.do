@@ -28,7 +28,7 @@ gen LTI_RO1 = 2*b_LTEquityinvest/(L.b_TA+b_TA)
 gen LN_TA1 = ln(b_TA)
 gen DEBT_RO1 = 2*b_TLiab/(L.b_TA+b_TA)
 gen ASSE_TO1 = 2*i_TOPincome/(L.b_TA+b_TA)
-gen LN_SUBPL1=i_PL4nonControl/L.b_LTEquityinvest
+gen SUB_roe1=i_PL4nonControl/L.b_LTEquityinvest
 gen LN_LTI1	=ln(L.b_LTEquityinvest)
 gen LN_O_RCV1	=ln(L.b_otherRCV)
 gen O_RCV_RO2	=b_otherRCV/T_RCV
@@ -40,7 +40,7 @@ winsor O_RCV_RO1,gen(O_RCV_flow) p(0.05)
 winsor RCV_TO1,gen(RCV_to) p(0.05)
 winsor DEBT_RO1,gen(DEBT_ro) p(0.05)
 winsor ASSE_TO1,gen(TA_to) p(0.05)
-winsor LN_SUBPL1,gen(SUB_roe) p(0.05)
+winsor SUB_roe1,gen(SUB_roe) p(0.05)
 winsor LN_LTI1,gen(ln_LTI) p(0.05)
 winsor LN_O_RCV1,gen(ln_O_RCV) p(0.05)
 winsor O_RCV_RO2,gen(O_RCV_stock) p(0.05)

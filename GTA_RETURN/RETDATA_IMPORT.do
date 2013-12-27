@@ -44,6 +44,8 @@ forvalue i=1/`numfl' {
   append using TRD_Week_`i'.dta
   erase TRD_Week_`i'.dta
 }
+duplicates drop stkcd trdwnt opndt wopnprc clsdt wclsprc wretwd wretnd markettype ,force
+compress
 save TRD_Week,replace
 
 use TRD_Week,clear

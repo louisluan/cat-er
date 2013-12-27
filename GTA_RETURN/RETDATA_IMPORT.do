@@ -3,8 +3,8 @@ version 12.1
 *-----------------local definition--------------------------
 local progdir "C:/Users/Louis/Documents/GitHub/cat-er/GTA_RETURN/"
 local ddir "C:/programs/data/GTARET/"
-local flname "TRD_Co TRD_Nrrate TRD_Weekcm TRD_Weekm TRD_Week TRD_Week_1 TRD_Week_2"
-local numfl = 2
+local flname "TRD_Co TRD_Nrrate TRD_Weekcm TRD_Weekm TRD_Week TRD_Week_1 TRD_Week_2 TRD_Week_3"
+local numfl = 3
 
 *------------------set working dir-------------------------------
 cd "`ddir'"

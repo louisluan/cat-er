@@ -35,13 +35,14 @@ gen age=FY+2005-listdate
 gen size=ln(b_TA)
 gen roa=i_netprofit/b_TA
 gen orcv=b_otherRCV/b_TA
-gen subroe=i_PL4nonControl/b_LTEquityinvest 
+gen subroe=i_PL4nonControl/b_LTEquityinvest
+gen ltesub= b_LTEquityinvest/b_TA
 
 
 gen inv=(cd_Tnetinvest-ci_amort-ci_intangileamort-cd_buysub)/b_TA
 
 
-winsor2 size cash lev growth inv roa orcv subroe sync, cut(1 99) replace
+winsor2 size cash lev growth inv roa orcv subroe sync ltesub, cut(1 99) replace
 
 xtreg inv L.inv L.size L.age L.cash L.lev L.growth  L.yrt L.roa d_ind* d_fy* ,fe
 predict invhat
@@ -49,12 +50,18 @@ gen overinv=inv-invhat
 
 tabstat overinv,s(mean min p25 p50 p75 max sd) f(%6.2f) 
 
+xtreg  orcv L.ltesub L.subroe L.lev L.cash L.size d_ind* d_fy*,fe
+predict orcvhat
+gen rorcv=orcv-orcvhat
 
-reg overinv L.orcv L.b_LTEquityinvest L.subroe L.lev L.cash L.size d_ind* d_fy*,robust
+reg overinv L.rorcv L.ltesub L.subroe L.lev L.cash L.size d_ind* d_fy*,robust
 
-ivregress 2sls overinv L.subroe L.lev L.cash L.size d_ind* d_fy* (orcv=L.b_LTEquityinvest)
 
-sureg (sync overinv =  L.orcv L.b_LTEquityinvest L.subroe L.lev L.cash L.size d_ind* d_fy*)
-ivregress 2sls sync overinv subroe lev cash size d_ind* d_fy* (orcv = L.b_LTEquityinvest)
+
+
+
+xtreg  overinv L.rorcv L.orcvhat L.subroe L.lev L.cash L.size d_ind* d_fy* ,fe     //both rorcv and orcvhat contribute to over-investment
+xtreg  sync overinv rorcv orcvhat subroe lev cash size d_ind* d_fy* ,fe //it's orcvhat contribute to the synchronicity
+
 
 

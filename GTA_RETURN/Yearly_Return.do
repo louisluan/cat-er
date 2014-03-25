@@ -5,10 +5,12 @@ gen rtw=1+wretwd
 egen cumrt=prod(rtw),by(stkcd TY)
 gen yrt=cumrt-1
 
-
-keep if TW==1
-keep stkcd TY yrt
 gen FY=TY-2005
-drop TY
+bys stkcd FY: egen maxwid=max(TW) 
+
+bys stkcd FY: keep if TW==maxwid
+keep stkcd FY yrt
+
+
 
 save year_ret.dta,replace

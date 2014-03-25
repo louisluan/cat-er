@@ -51,6 +51,9 @@ drop _merge
 merge 1:1 mid using FS_Comscfd
 drop if _merge~=3
 drop _merge
+merge 1:1 mid using FS_Comscfi
+drop if _merge~=3
+drop _merge
 merge m:1 stkcd using TRD_Co
 drop if _merge==2
 drop _merge

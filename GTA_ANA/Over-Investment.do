@@ -17,6 +17,10 @@ drop d_ind1
 
 merge 1:1 stkcd FY using year_ret
 drop if _merge~=3
+drop _merge
+merge 1:1 stkcd FY using SYNC
+drop if _merge~=3
+drop _merge
 
 xtset stkcd FY
 //xtbalance,range(1,7)
@@ -37,7 +41,7 @@ gen subroe=i_PL4nonControl/b_LTEquityinvest
 gen inv=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
 
 
-winsor2 size cash lev growth inv roa orcv subroe, cut(1 99) replace
+winsor2 size cash lev growth inv roa orcv subroe sync, cut(1 99) replace
 
 xtreg inv L.inv L.size L.age L.cash L.lev L.growth  L.yrt L.roa d_ind* d_fy* ,fe
 predict invhat
@@ -46,4 +50,9 @@ gen overinv=inv-invhat
 tabstat overinv,s(mean min p25 p50 p75 max sd) f(%6.2f) 
 
 
-reg overinv L.orcv L.subroe L.lev L.cash L.size,robust
+reg overinv L.orcv L.b_LTEquityinvest L.subroe L.lev L.cash L.size d_ind* d_fy*,robust
+
+sureg (sync overinv =  L.orcv L.b_LTEquityinvest L.subroe L.lev L.cash L.size d_ind* d_fy*)
+ivregress 2sls sync overinv subroe lev cash size d_ind* d_fy* (orcv = L.b_LTEquityinvest)
+
+

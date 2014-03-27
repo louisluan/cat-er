@@ -32,17 +32,15 @@ gen cash=b_cash/b_TA
 gen age=FY+2005-listdate
 gen size=ln(b_TA)
 gen roa=i_netprofit/b_TA
-gen orcv=b_otherRCV/b_TA
 gen subroe=i_PL4nonControl/b_LTEquityinvest
-gen ltesub= b_LTEquityinvest/b_TA
-gen ato = i_TOPincome/b_TA
+
 
 
 
 gen inv=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
 
 
-winsor2 size cash lev growth inv roa orcv subroe sync ltesub ato, cut(1 99) replace
+winsor2 size cash lev growth inv roa subroe sync, cut(1 99) replace
  
 xtreg inv L.inv L.size L.age L.cash L.lev L.growth  L.yrt L.roa d_ind* d_fy* ,fe
 predict invhat
@@ -50,19 +48,20 @@ gen overinv=inv-invhat
 
 tabstat overinv,s(mean min p25 p50 p75 max sd) f(%6.2f) 
 
-xtreg  orcv L.ltesub L.subroe L.lev L.cash L.size L.ato d_ind* d_fy*,fe
-predict orcvhat
-gen rorcv=orcv-orcvhat
 
-//blocks to test the mediation effect of overinv using other rcv-overinv-sync model
 
-xtreg  sync orcvhat subroe lev cash size  d_fy* ,fe //First validate if other-rcv contributed to sync-- check the significance of c'
 
-xtreg  overinv orcvhat L.subroe L.lev L.cash L.size d_fy* ,fe     //Second validate if other-rcv contributed to mediator overinv -- check the significance of a
+//blocks to test the mediation effect of overinv using other subroe-overinv-sync model
 
-xtreg  sync overinv orcvhat subroe lev cash size d_fy* ,fe //Last validate if other-rcv and mediator overinv contributed to sync -- check the significance of a and b
+xtreg  sync overinv lev cash size d_fy* ,fe //First validate if subroe contributed to sync-- check the significance of c'
 
-//sgmediation sync,mv(overinv) iv(orcvhat)
+xtreg  subroe overinv  lev cash size d_fy* ,fe     //Second validate if subroe contributed to mediator overinv -- check the significance of a
+
+xtreg  sync c.overinv##c.subroe lev cash size d_fy* ,fe //Last validate if subroe and mediator overinv contributed to sync -- check the significance of a and b
+
+
+
+sgmediation sync,mv(subroe) iv(overinv)
 
 
 

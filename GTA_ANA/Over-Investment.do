@@ -1,4 +1,5 @@
-cd /Users/luisluan/data/GTA
+cap cd /Users/luisluan/data/GTA
+cap cd C:\programs\data\GTA
 use GTA_FS,clear
 cap xtset,clear
 keep if substr(accper,6,2)=="12"
@@ -25,43 +26,61 @@ drop _merge
 xtset stkcd FY
 //xtbalance,range(1,7)
 
-gen growth=D.i_TOPincome/L.i_TOPincome
-gen lev=b_TLiab/b_TA
-gen cash=b_cash/b_TA
-
-gen age=FY+2005-listdate
-gen size=ln(b_TA)
-gen roa=i_netprofit/b_TA
-gen subroe=i_PL4nonControl/b_LTEquityinvest
-
-
-
-
-gen inv=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
+gen GrowthOpp=D.i_TOPincome/L.i_TOPincome
+gen Lev=b_TLiab/b_TA
+gen Cash=b_cash/b_TA
+gen ATO=i_TOPincome/b_TA
+gen Lage=FY+2005-listdate
+gen Size=ln(b_TA)
+gen ROA=i_netprofit/b_TA
+gen SubROE=i_PL4nonControl/b_LTEquityinvest
+ren sync SYNC
 
 
-winsor2 size cash lev growth inv roa subroe sync, cut(1 99) replace
+gen INV=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
+
+winsor2 Size Cash Lev GrowthOpp INV ROA SubROE ATO, cut(1 99) replace
+
+xtreg INV L.INV L.Size L.Lage L.Cash L.Lev L.GrowthOpp  L.yrt L.ROA d_ind* d_fy* ,fe
+predict INVhat
+gen OINV=INV-INVhat
+
+
+logout, save(SYNC_descriptives) excel replace: ///
+	tabstat SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO,s(min max mean median sd count) c(s) f(%6.2f)
+logout, save(SYNC_corr) excel replace: ///
+	pwcorr_a SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO, star1(0.01) star5(0.05) star10(0.1)
  
-xtreg inv L.inv L.size L.age L.cash L.lev L.growth  L.yrt L.roa d_ind* d_fy* ,fe
-predict invhat
-gen overinv=inv-invhat
-
-tabstat overinv,s(mean min p25 p50 p75 max sd) f(%6.2f) 
 
 
 
 
-//blocks to test the mediation effect of overinv using other subroe-overinv-sync model
-
-xtreg  sync overinv lev cash size d_fy* ,fe //First validate if subroe contributed to sync-- check the significance of c'
-
-xtreg  subroe overinv  lev cash size d_fy* ,fe     //Second validate if subroe contributed to mediator overinv -- check the significance of a
-
-xtreg  sync c.overinv##c.subroe lev cash size d_fy* ,fe //Last validate if subroe and mediator overinv contributed to sync -- check the significance of a and b
 
 
 
-sgmediation sync,mv(subroe) iv(overinv)
+//blocks to test the mediation effect of OINV using other SubROE-OINV-sync model
+
+reg  SubROE OINV  Lev Cash Size ROA ATO d_fy* d_ind*
+est store SubROE_OLS
+xtreg  SubROE OINV  Lev Cash Size ROA  d_fy* ,fe     //Second validate if SubROE contributed to mediator OINV -- check the significance of a
+est store SubROE_FE
+
+reg  SYNC OINV Lev Cash Size ROA d_fy* d_ind*
+est store SYNC_OINV_OLS
+xtreg  SYNC OINV Lev Cash Size ROA d_fy* ,fe //First validate if SubROE contributed to sync-- check the significance of c'
+est store SYNC_OINV_FE
+
+reg  SYNC OINV SubROE Lev Cash Size ROA d_fy* d_ind*
+est store SYNC_FULL_OLS
+xtreg  SYNC OINV SubROE Lev Cash Size ROA d_fy* ,fe //Last validate if SubROE and mediator OINV contributed to sync -- check the significance of a and b
+est store SYNC_Full_FE
+
+outreg2 [SubROE_OLS SubROE_FE] using SubROE, excel replace ///
+	title("SubROE") /// 
+	drop(d_*)  addstat(Wald , e(chi2)) /// 
+	tdec(2) rdec(3) r2 e(F)  dec(3)
+
+//sgmediation sync,mv(SubROE) iv(OINV)
 
 
 

@@ -75,12 +75,24 @@ est store SYNC_FULL_OLS
 xtreg  SYNC OINV SubROE Lev Cash Size ROA d_fy* ,fe //Last validate if SubROE and mediator OINV contributed to sync -- check the significance of a and b
 est store SYNC_Full_FE
 
+//blocks to output the regression results
+
 outreg2 [SubROE_OLS SubROE_FE] using SubROE, excel replace ///
 	title("SubROE") /// 
-	drop(d_*)  addstat(Wald , e(chi2)) /// 
-	tdec(2) rdec(3) r2 e(F)  dec(3)
+	drop(d_*)   /// 
+	tdec(2) rdec(3) r2 e(F) dec(3)
+	
+outreg2 [SYNC_OINV_OLS SYNC_OINV_FE] using SYNC_OINV, excel replace ///
+	title("SYNC_OINV") /// 
+	drop(d_*)   /// 
+	tdec(2) rdec(3) r2 e(F) dec(3)
+	
+outreg2 [SYNC_FULL_OLS SYNC_Full_FE] using FULL, excel replace ///
+	title("FULL") /// 
+	drop(d_*)   /// 
+	tdec(2) rdec(3) r2 e(F) dec(3)
 
-//sgmediation sync,mv(SubROE) iv(OINV)
+sgmediation SYNC,mv(SubROE) iv(OINV) cv(Lev Cash Size ROA d_fy*)
 
 
 

@@ -46,10 +46,7 @@ predict INVhat
 gen OINV=INV-INVhat
 
 
-logout, save(SYNC_descriptives) excel replace: ///
-	tabstat SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO,s(min max mean median sd count) c(s) f(%6.2f)
-logout, save(SYNC_corr) excel replace: ///
-	pwcorr_a SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO, star1(0.01) star5(0.05) star10(0.1)
+
  
 
 
@@ -60,20 +57,26 @@ logout, save(SYNC_corr) excel replace: ///
 
 //blocks to test the mediation effect of OINV using other SubROE-OINV-sync model
 
-reg  SubROE OINV  Lev Cash Size ROA ATO d_fy* d_ind*
+reg  SubROE OINV  Lev Cash Size ROA ATO soetag d_fy* d_ind*
 est store SubROE_OLS
-xtreg  SubROE OINV  Lev Cash Size ROA  d_fy* ,fe     //Second validate if SubROE contributed to mediator OINV -- check the significance of a
+xtreg  SubROE OINV  Lev Cash Size ROA ATO d_fy* ,fe     //Second validate if SubROE contributed to mediator OINV -- check the significance of a
 est store SubROE_FE
 
-reg  SYNC OINV Lev Cash Size ROA d_fy* d_ind*
+reg  SYNC OINV Lev Cash Size ROA soetag d_fy* d_ind*
 est store SYNC_OINV_OLS
 xtreg  SYNC OINV Lev Cash Size ROA d_fy* ,fe //First validate if SubROE contributed to sync-- check the significance of c'
 est store SYNC_OINV_FE
 
-reg  SYNC OINV SubROE Lev Cash Size ROA d_fy* d_ind*
+reg  SYNC OINV SubROE Lev Cash Size ROA soetag d_fy* d_ind*
 est store SYNC_FULL_OLS
 xtreg  SYNC OINV SubROE Lev Cash Size ROA d_fy* ,fe //Last validate if SubROE and mediator OINV contributed to sync -- check the significance of a and b
 est store SYNC_Full_FE
+
+//blocks to output the descriptive statistics
+logout, save(SYNC_descriptives) excel replace: ///
+	tabstat SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO,s(min max mean median sd count) c(s) f(%6.2f)
+logout, save(SYNC_corr) excel replace: ///
+	pwcorr_a SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO, star1(0.01) star5(0.05) star10(0.1)
 
 //blocks to output the regression results
 

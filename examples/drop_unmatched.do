@@ -1,0 +1,1 @@
+input v1 v21 32 73 .7 .9 .1 .1 .1 4endgen ltag=v2==.gen no=_ncap gen tag=1mkmat(v1 v2 ltag no tag),matrix(v)local l=rowsof(v)forval t= 1/`l' {	forval i= 1/`l' {		local p=v[`t',4]		local q=v[`i',2]		if `p' == `q'{			mat v[`t',5]=0 		}	}}clearsvmat v,names(col)drop if ltag==1 & tag==1

@@ -1,5 +1,7 @@
 cap cd /Users/luisluan/data/GTA
 cap cd C:\programs\data\GTA
+
+
 use GTA_FS,clear
 cap xtset,clear
 keep if substr(accper,6,2)=="12"
@@ -34,17 +36,20 @@ gen Lage=FY+2005-listdate
 gen Size=ln(b_TA)
 gen ROA=i_netprofit/b_TA
 gen SubROE=i_PL4nonControl/b_LTEquityinvest
+gen LnVol=ln(yvol)
+gen TopShare2=topshare^2
 ren sync SYNC
 
 
 gen INV=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
 
-winsor2 Size Cash Lev GrowthOpp INV ROA SubROE ATO, cut(1 99) replace
+winsor2 Size Cash Lev GrowthOpp INV ROA SubROE ATO LnVol, cut(1 99) replace
 
-xtreg INV L.INV L.Size L.Lage L.Cash L.Lev L.GrowthOpp  L.yrt L.ROA d_ind* d_fy* ,fe
+reg INV L.INV L.Size L.Lage L.Cash L.Lev L.GrowthOpp L.ROA L.ATO soetag L.yrt d_ind* d_fy*,vce(cluster stkcd)
 predict INVhat
 gen OINV=INV-INVhat
 
+winsor2 OINV ,cut(1 99) replace
 
 
  
@@ -62,10 +67,12 @@ est store SubROE_OLS
 xtreg  SubROE OINV  Lev Cash Size ROA ATO d_fy* ,fe     //Second validate if SubROE contributed to mediator OINV -- check the significance of a
 est store SubROE_FE
 
-reg  SYNC OINV Lev Cash Size ROA soetag d_fy* d_ind*
+reg  SYNC OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
 est store SYNC_OINV_OLS
 xtreg  SYNC OINV Lev Cash Size ROA d_fy* ,fe //First validate if SubROE contributed to sync-- check the significance of c'
 est store SYNC_OINV_FE
+
+reg  SYNC OINV SubROE topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
 
 reg  SYNC OINV SubROE Lev Cash Size ROA soetag d_fy* d_ind*
 est store SYNC_FULL_OLS

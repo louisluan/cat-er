@@ -18,14 +18,14 @@ foreach fl of local flname {
   insheet using `fl'.csv,name clear
   cap drop if strpos(accper,"/1/1")>0
 
-  do `progdir'`fl'_labels.do //no space between to locals
+  do `progdir'`fl'_labels.do //no space between two locals
    qui ds
   foreach v of varlist `r(varlist)' {
   local tmp:variable label `v'
 
   local tmp1= substr("`tmp'",1,2)
   //对字符型local的引用需额外增加""，如"`tmp1'"
-  if "`tmp1'"== "Z_" {    
+  if "`tmp1'"== "Z_" {    //Delete accounting items for financial firms
     drop `v'
      }
   
@@ -57,7 +57,7 @@ drop _merge
 merge m:1 stkcd using TRD_Co
 drop if _merge==2
 drop _merge
-merge m:1 stkcd using HLD_Contrshr
+merge 1:1 mid using HLD_Contrshr
 drop if _merge==2
 drop _merge
 

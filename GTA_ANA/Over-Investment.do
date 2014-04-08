@@ -33,22 +33,31 @@ gen ATO=i_TOPincome/b_TA
 gen Lage=FY+2005-listdate
 gen Size=ln(b_TA)
 gen ROA=i_netprofit/b_TA
+gen ROE=i_netprofit/b_TOE
 gen SubROE=i_PL4nonControl/b_LTEquityinvest
 ren sync SYNC
 
 
 gen INV=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
 
-winsor2 Size Cash Lev GrowthOpp INV ROA SubROE ATO, cut(1 99) replace
+winsor2 Size Cash Lev GrowthOpp INV ROA SubROE ATO ROE, cut(1 99) replace
 
-xtreg INV L.INV L.Size L.Lage L.Cash L.Lev L.GrowthOpp  L.yrt L.ROA d_ind* d_fy* ,fe
+reg INV L.INV L.Size L.Lage L.Cash L.Lev L.GrowthOpp L.ROA  soetag L.yrt  d_ind* d_fy*
 predict INVhat
 gen OINV=INV-INVhat
 
+winsor2 OINV,cut(1 99) replace
 
 
- 
 
+qreg OINV Lev Cash Size ROA  ATO soetag d_fy* d_ind* , quantile(.75) nolog
+qreg OINV Lev Cash Size ROE  ATO soetag d_fy* d_ind* ,quantile(.75) nolog
+
+reg OINV Lev Cash Size ROA F(1/3).ROA ATO soetag d_fy* d_ind* ,vce(cluster stkcd)
+reg OINV Lev Cash Size ROE F(1/3).ROE ATO soetag d_fy* d_ind* ,vce(cluster stkcd)
+
+xtreg  OINV Lev Cash Size ROA F(1/3).ROA ATO soetag d_fy* d_ind* ,fe vce(cluster stkcd)
+xtreg  OINV Lev Cash Size ROE F(1/3).ROE ATO soetag d_fy* d_ind* ,fe vce(cluster stkcd)
 
 
 

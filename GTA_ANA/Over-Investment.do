@@ -44,23 +44,14 @@ ren sync SYNC
 
 gen INV=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
 
-<<<<<<< HEAD
+
 winsor2 Size Cash Lev GrowthOpp INV ROA SubROE ATO LnVol, cut(1 99) replace
 
 reg INV L.INV L.Size L.Lage L.Cash L.Lev L.GrowthOpp L.ROA L.ATO soetag L.yrt d_ind* d_fy*,vce(cluster stkcd)
-predict INVhat
-gen OINV=INV-INVhat
+predict OINV,res
 
 winsor2 OINV ,cut(1 99) replace
-=======
-winsor2 Size Cash Lev GrowthOpp INV ROA SubROE ATO ROE, cut(1 99) replace
 
-reg INV L.INV L.Size L.Lage L.Cash L.Lev L.GrowthOpp L.ROA  soetag L.yrt  d_ind* d_fy*
-predict INVhat
-gen OINV=INV-INVhat
-
-winsor2 OINV,cut(1 99) replace
->>>>>>> 5477a14ccaedeb2aa11f8729418e8e68f87209a0
 
 
 

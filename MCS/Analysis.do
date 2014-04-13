@@ -17,30 +17,57 @@ gen FinPwr=Fin+Bankhold
 tab FY,gen(d_FY)
 drop d_FY1
 
+winsor2 STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
+		Unity CashDist ESOP HoldFin TopinSub ORCV Budget ///
+		ERP  Lev Risk Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
+		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web ///
+		SubRoeContrib  LawProb  MktPwr ///
+		 ProductPC   TopChange ROE SYNC ///
+		ProfitQua SalesPC QuickRatio,cut(1 99) replace
+
 factor STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
-		Unity CashDist d_FY*
+		Unity CashDist ESOP HoldFin TopinSub ORCV Budget ///
+		ERP  Lev Risk Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
+		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web ///
+		SubRoeContrib  LawProb  MktPwr ///
+		 ProductPC   TopChange ///
+		ProfitQua SalesPC QuickRatio d_FY*, factors(4) pcf
+
+reg ROE STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
+		Unity CashDist
+reg SYNC STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
+		Unity CashDist
 
 predict FBorder
 
- factor   ESOP HoldFin TopinSub ORCV Budget ///
-		ERP  Lev Risk d_FY*
+reg ROE ESOP HoldFin TopinSub ORCV Budget ///
+		ERP  Lev Risk 
+		
+reg SYNC ESOP HoldFin TopinSub ORCV Budget ///
+		ERP  Lev Risk 
 
 predict FInter
 
-factor Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
-		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web d_FY*
+reg ROE Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
+		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web
+		
+reg SYNC Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
+		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web
 
 predict FBelief
 
-
-factor SubRoeContrib  LawProb  MktPwr ///
+reg  SYNC SubRoeContrib  LawProb  MktPwr ///
 		 ProductPC   TopChange ///
-		ProfitQua SalesPC QuickRatio d_FY*
+		ProfitQua SalesPC QuickRatio
+
+reg  ROE SubRoeContrib  LawProb  MktPwr ///
+		 ProductPC   TopChange ///
+		ProfitQua SalesPC QuickRatio
 		
 predict FDiag
 
-reg SYNC FDiag FBelief FBorder FInter Lev ATO Size i.FY
-reg ROE FDiag FBelief FBorder FInter  ATO Size Lev i.FY
+reg SYNC FA1-FA4 Lev ATO Size i.FY
+reg ROE FA1-FA4  ATO Size Lev i.FY
 
 
 

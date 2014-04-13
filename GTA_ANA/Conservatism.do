@@ -4,7 +4,6 @@ cap cd C:\programs\data\GTA
 
 use GTA_FS,clear
 cap xtset,clear
-keep if substr(accper,6,2)=="12"
 drop if statco~=1
 drop date
 drop if sttag==1
@@ -24,14 +23,13 @@ drop _merge
 
 xtset stkcd FY
 
+
+
 //block to generate variable data 
 
 //-------------Accrual model of conservatism----------------------
 
 
-foreach v of varlist b_cash-ci_netcasheqincr {
-  cap  replace `v'=0 if `v'==.
-}
 
 gen TACC=i_netprofit+ci_amort-cd_TnetOPCF //Total Accrual
 
@@ -57,14 +55,33 @@ ren _stat_1 cons_Match
 
 //-----------------C-Score Model of conservatism-------------------
 
+
+
+sort stkcd FY
+
 gen Lev=b_TLiab/b_TA
 gen Size=ln(b_TA)
 gen MtB=wclsprc/b_TA
 
+ 
 gen EtP=i_beps/L.wclsprc
 gen D=yrt<0
 
+ren yrt R
 
+reg EtP D R C.R#C.(Size MtB Lev) i.D#C.R i.D#C.R#C.(Size MtB Lev) Size MtB Lev  i.D#C.(Size MtB Lev)
+mat b=e(b)
 
+gen CScore=b[1,7]+b[1,9]*Size+b[1,11]*MtB+b[1,13]*Lev
+gen GScore=b[1,2]+b[1,3]*Size+b[1,4]*MtB+b[1,5]*Lev
 
+//--------------------------Earnings Volatility conservatism-----------------
+
+gen EBIT=i_netprofit+ i_incometax+ i_interest
+by stkcd:egen SDEBIT=sd(EBIT)
+gen cons_SDE=SDEBIT/b_TA
+
+keep stkcd FY cons_SDE CScore GScore cons_Match cons_NonOpAcc R D Size MtB Lev yvol EtP
+
+save Conservatism.dta,replace
 

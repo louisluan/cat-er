@@ -51,14 +51,18 @@ factor Culture   CompPub WebStrategy WebHonor WebHR,fa(1)
 
 predict FBelief
 		
-factor  SubRoeContrib ProductPC TopChange ROE OINV ProfitQua SalesPC QuickRatio,fa(1)
+factor  SubRoeContrib ProductPC TopChange OINV ProfitQua SalesPC QuickRatio,fa(1)
 
 predict FDiag
 
 reg ROE FInt FBelief FBorder FDiag i.stkcd i.FY
 reg SYNC FInt FBelief FBorder FDiag Size ATO i.stkcd i.FY
+reg CScore FInt FBelief FBorder FDiag Size ATO i.stkcd i.FY
+reg cons_SDE  FInt FBelief FBorder FDiag Size ATO i.stkcd i.FY
+reg cons_Match FInt FBelief FBorder FDiag Size ATO i.stkcd i.FY
 
-
+reg cons_NonOpAcc FInt FBelief FBorder FDiag Size ATO i.stkcd i.FY
+  
 
 
 

@@ -9,6 +9,8 @@ drop date
 drop if sttag==1
 gen indc=substr(GIC,1,1)
 replace indc=substr(GIC,1,2) if indc=="C"
+drop if substr(GIC,1,1)=="I"
+
 
 encode indc,gen(dindc)
 encode accper,gen(FY)
@@ -51,7 +53,8 @@ xtbalance,range(2,7)
 
 *****************************************************Descriptive Stat & Correlations****************************************************************************
 
-logout, save(o_rcv_descriptives) excel replace: ///tabstat O_RCV_stock  O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to SUB_roe,s(min max mean median sd skew kurt) c(s) f(%6.2f) by(soetag)
+logout, save(o_rcv_descriptives) excel replace: ///
+tabstat O_RCV_stock  O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to SUB_roe,s(min max mean median sd skew kurt) c(s) f(%6.2f) by(soetag)
 logout, save(o_rcv_corr) excel replace: ///
 pwcorr O_RCV_stock  O_RCV_flow LTI_ro  ln_TA TA_to DEBT_ro RCV_to SUB_roe, sig
 
@@ -99,9 +102,16 @@ hausman FE_NONSOE_FLOW RE_NONSOE_FLOW
 
 *----------------         ------------------------- Hypothesis 1 regressions output        -----------------------           ------------------------------------------
 
-outreg2 [OLS_SOE_STOCK FE_SOE_STOCK RE_SOE_STOCK OLS_NONSOE_STOCK FE_NONSOE_STOCK RE_NONSOE_STOCK] using H1STOCK, excel replace ///	title("Panel A: Stock model") /// 	drop(_I*)  /// 	tdec(2) rdec(3) r2 e(F) dec(3)
-outreg2 [OLS_SOE_FLOW FE_SOE_FLOW RE_SOE_FLOW OLS_NONSOE_FLOW FE_NONSOE_FLOW RE_NONSOE_FLOW] using H1FLOW, excel replace ///	title("Panel B: Flow model") /// 	drop(_I*)  /// 	tdec(2) rdec(3) r2 e(F) dec(3)
-
+outreg2 [OLS_SOE_STOCK FE_SOE_STOCK RE_SOE_STOCK OLS_NONSOE_STOCK FE_NONSOE_STOCK RE_NONSOE_STOCK] using H1STOCK, excel replace ///
+	title("Panel A: Stock model") /// 
+	drop(_I*)  /// 
+	tdec(2) rdec(3) r2 e(F) dec(3)
+outreg2 [OLS_SOE_FLOW FE_SOE_FLOW RE_SOE_FLOW OLS_NONSOE_FLOW FE_NONSOE_FLOW RE_NONSOE_FLOW] using H1FLOW, excel replace ///
+	title("Panel B: Flow model") /// 
+	drop(_I*)  /// 
+	tdec(2) rdec(3) r2 e(F) dec(3)
+
+
 ********************************************************Hypothesis 2*************************************************************************
 *----------------         ------------------------- OLS BLOCK         -----------------------           ------------------------------------------
 reg SUB_roe  L.O_RCV_stock ln_TA  DEBT_ro TA_to RCV_to  d_ind* d_fy* if  soetag==0,robust
@@ -115,7 +125,10 @@ ivreg2 SUB_roe   ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI ) d_ind* d_
 est store ROE_GMM2S_SOE
 
 
-outreg2 [ROE_OLS_SOE ROE_GMM2S_SOE ROE_OLS_NONSOE ROE_GMM2S_NONSOE] using H2, excel replace ///	title("H2") /// 	drop(d_*)  /// 	tdec(2) rdec(3) r2 e(F) dec(3)
+outreg2 [ROE_OLS_SOE ROE_GMM2S_SOE ROE_OLS_NONSOE ROE_GMM2S_NONSOE] using H2, excel replace ///
+	title("H2") /// 
+	drop(d_*)  /// 
+	tdec(2) rdec(3) r2 e(F) dec(3)
 
 /*
 xtivreg SUB_roe  ln_TA  DEBT_ro TA_to RCV_to (L.O_RCV_stock=L.ln_LTI )  if  soetag==0,re

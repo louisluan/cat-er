@@ -1,6 +1,8 @@
 
 local progdir "C:/Users/Louis/Documents/GitHub/cat-er/MCS/"
-local ddir "C:/programs/data/mcs"
+local ddir "C:/programs/data/mcs/"
+local odir "C:/programs/data/GTA/"
+
 
 local flname="000409 000420 000519 000581 000725 000760 000786 000876 000878 000910 000928 000953 002013 002032 002045 002050 002071 002074 002080 002083 002085 002102 002103 002110 002118 002132 002143 002162 002191 002202 002240 002250 002256 002276 002293 002326 002345 002356 002399 002403 002540 002604 600095 600099 600114 600199 600230 600234 600809 600983 "
 
@@ -53,7 +55,14 @@ order stkcd FY STGConcern
 duplicates drop
 drop OINV
 
-merge 1:1 stkcd FY using OINV.dta
+replace FY=FY-2006
+
+local odir "C:/programs/data/GTA/"
+merge 1:1 stkcd FY using `odir'OINV_SYNC.dta
+drop if _merge==2
+drop _merge
+
+merge 1:1 stkcd FY using `odir'Conservatism.dta
 drop if _merge==2
 drop _merge
 

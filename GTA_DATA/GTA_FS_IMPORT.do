@@ -17,6 +17,7 @@ foreach fl of local flname {
 
   insheet using `fl'.csv,name clear
   cap drop if strpos(accper,"/1/1")>0
+  cap keep if substr(accper,6,2)=="12"
 
   do `progdir'`fl'_labels.do //no space between two locals
    qui ds
@@ -45,6 +46,8 @@ foreach fl of local flname {
 
 
 use `ddir'FS_Combas,clear
+
+
 merge 1:1 mid using FS_Comins
 drop if _merge~=3
 drop _merge
@@ -54,6 +57,14 @@ drop _merge
 merge 1:1 mid using FS_Comscfi
 drop if _merge~=3
 drop _merge
+compress, nocoalesce
+
+qui ds,has(type double) 
+
+foreach v of varlist `r(varlist)' {
+  cap  replace `v'=0 if `v'==.
+}
+
 merge m:1 stkcd using TRD_Co
 drop if _merge==2
 drop _merge
@@ -64,5 +75,12 @@ drop _merge
 gen date=date(accper,"YMD")
 format date %tdCCYY-NN-DD
 // qui xtset stkcd date
+
+
+bys stkcd: egen t_soetag=min(soetag)
+replace t_soetag=0 if soetag==.
+replace soetag=t_soetag if soetag==.
+drop t_soetag
+
 
 save GTA_FS,replace

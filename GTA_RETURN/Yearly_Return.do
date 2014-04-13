@@ -20,7 +20,7 @@ bys stkcd FY: egen maxwid=max(TW)
 bys stkcd FY: keep if TW==maxwid
 label var yrt "Yearly Return" 
 label var yvol "Yearly Trading Volume"
-keep stkcd FY yrt yvol
+keep stkcd FY yrt yvol wclsprc
 
 
 //----------save data and overwrite the copy in GTA dir----------------

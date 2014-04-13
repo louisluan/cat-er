@@ -6,68 +6,59 @@ tabstat STGConcern BusiMode CHNConcern CoreComp Fin Bankhold Subs Guarrantee ///
 		ERP Diver Lev Risk Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
 		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web ///
 		SubRoeContrib Indu ProdHHI TerriHHI MKTShares SubHHI ProbContract ///
-		LawSuit AuditorCH Fine ProductPC AccountingRule Brand50 TopChange ///
-		ProfitQua SalesPC QuickRatio,s(min max p50 mean sd N) c(s)
+		LawSuit AuditorCH Fine ProductPC AccountingRule Brand50 TopChange OINV ///
+		ProfitQua SalesPC QuickRatio,s(min max p50 mean sd N) c(s) f(%6.2f)
 dropvars ProdHHI TerriHHI MKTShares SubHHI Diver 
 
 gen Unity=UnityBrand+UnityLogo+UnityComp
 gen LawProb=ProbContract+LawSuit + AuditorCH +Fine+AccountingRule
-gen MktPwr=Indu+Brand50
-gen FinPwr=Fin+Bankhold
+gen ITCon=ERP+Web+SNS+MIS
+
+tabstat Unity LawProb ITCon,s(min max p50 mean sd N) c(s) f(%6.2f)
+
 tab FY,gen(d_FY)
 drop d_FY1
 
-winsor2 STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
-		Unity CashDist ESOP HoldFin TopinSub ORCV Budget ///
-		ERP  Lev Risk Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
-		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web ///
-		SubRoeContrib  LawProb  MktPwr ///
-		 ProductPC   TopChange ROE SYNC ///
+winsor2 STGConcern BusiMode CHNConcern CoreComp  LawProb  Guarrantee ///
+		Unity CashDist ESOP TopinSub ORCV Budget ITCon ///
+	    Lev Risk Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
+		WebStrategy WebHonor WebHR DebtCost ///
+		SubRoeContrib ProductPC   TopChange ROE OINV ///
 		ProfitQua SalesPC QuickRatio,cut(1 99) replace
+		
+tabstat STGConcern BusiMode CHNConcern CoreComp  LawProb ITCon Guarrantee ///
+		Unity CashDist ESOP TopinSub ORCV Budget ///
+	    Lev Risk Culture TopEdu TopAge StaffEdu  CompPub ///
+		WebStrategy WebHonor WebHR DebtCost ///
+		SubRoeContrib  ///
+		 ProductPC   TopChange ROE OINV ///
+		ProfitQua SalesPC QuickRatio,s(min max p50 mean sd N) c(s) f(%6.2f)
 
-factor STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
-		Unity CashDist ESOP HoldFin TopinSub ORCV Budget ///
-		ERP  Lev Risk Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
-		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web ///
-		SubRoeContrib  LawProb  MktPwr ///
-		 ProductPC   TopChange ///
-		ProfitQua SalesPC QuickRatio d_FY*, factors(4) pcf
 
-reg ROE STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
-		Unity CashDist
-reg SYNC STGConcern BusiMode CHNConcern CoreComp  FinPwr Subs Guarrantee ///
-		Unity CashDist
+
+
+
+factor STGConcern BusiMode CHNConcern CoreComp  Guarrantee Unity CashDist,fa(1) 
 
 predict FBorder
 
-reg ROE ESOP HoldFin TopinSub ORCV Budget ///
-		ERP  Lev Risk 
 		
-reg SYNC ESOP HoldFin TopinSub ORCV Budget ///
-		ERP  Lev Risk 
+factor ESOP TopinSub ORCV  TopEdu Lev Risk ITCon,fa(1)
 
-predict FInter
-
-reg ROE Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
-		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web
+predict FInt
 		
-reg SYNC Culture TopEdu TopAge StaffEdu UnityComp CompPub ///
-		WebStrategy WebHonor WebHR DebtCost TopOverseas MIS SNS Web
+factor Culture   CompPub WebStrategy WebHonor WebHR,fa(1)
 
 predict FBelief
-
-reg  SYNC SubRoeContrib  LawProb  MktPwr ///
-		 ProductPC   TopChange ///
-		ProfitQua SalesPC QuickRatio
-
-reg  ROE SubRoeContrib  LawProb  MktPwr ///
-		 ProductPC   TopChange ///
-		ProfitQua SalesPC QuickRatio
 		
+factor  SubRoeContrib ProductPC TopChange ROE OINV ProfitQua SalesPC QuickRatio,fa(1)
+
 predict FDiag
 
-reg SYNC FA1-FA4 Lev ATO Size i.FY
-reg ROE FA1-FA4  ATO Size Lev i.FY
+reg ROE FInt FBelief FBorder FDiag i.stkcd i.FY
+reg SYNC FInt FBelief FBorder FDiag Size ATO i.stkcd i.FY
+
+
 
 
 

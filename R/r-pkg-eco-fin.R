@@ -49,11 +49,16 @@ eco=c("AER","aod","apt","AutoSEARCH","bayesm","betareg","boot",
       "splm","strucchange","survival","systemfit","timeSeries",
       "truncreg","tseries","tsfa","urca","vars","VGAM","Zelig","zoo")
 ts=c("ArDec","arfima","astsa","bayesGARCH","BAYSTAR","bentcableAR","bfast","biwavelet","boot","brainwaver","bspec","CADFtest","chron","CommonTrend","cts","depmix","depmixS4","deseasonalize","dlm","dse","dtw","dyn","dynlm","Ecdat","ensembleBMA","EvalEst","events","expsmooth","fame","fArma","FeedbackTS","fGarch","FGN","FinTS","FitAR","FitARMA","FKF","fma","fNonlinear","ForeCA","forecast","fpp","fracdiff","fractal","fractalrock","fts","fUnitRoots","GeneCycle","GeneNet","GEVStableGarch","glarma","gogarch","gsarima","hydroGOF","hydroTSM","Interpol.T","its","KFAS","KFKSDS","kza","lgarch","locits","lomb","LPStimeSeries","ltsa","lubridate","MAPA","mAr","MAR1","mar1s","MARSS","Mcomp","meboot","mFilter","midasr","mondate","MSBVAR","MSwM","MTS","mvcwt","nets","nlts","nonlinearTseries","npst","paleoTS","partsm","pastecs","pdfetch","pear","perARMA","pomp","portes","psd","ptw","PVAClone","Quandl","quantspec","rdatamarket","rmaf","RMAWGEN","rmgarch","robfilter","RSEIS","Rssa","RTisean","rts","rugarch","rwt","SDD","sde","seas","season","seasonal","signalextraction","sltl","spTimer","stochvol","stsm","stsm.class","StVAR","surveillance","tempdisagg","tframe","Tides","tiger","timeDate","TimeProjection","timesboot","timeSeries","timsac","tis","tpr","TSA","TSAgg","tsbugs","TSclust","TSdbi","tsDyn","tseries","tseriesChaos","tsfa","tslars","tsModel","TSTutorial","urca","vars","wavelets","waveslim","wavethresh","WeightedPortTest","wmtsa","wq","x12","x12GUI","xts","zoo")
+
+
 install.packages(eco)
 install.packages(ts)
 install.packages(fin)
 install.packages(rep)
 
+txts=c("rJava","rmmseg4j","XML","tm","topicmodels","RWeka","Isa","RTextTools","zipfR","TextRegression","wordcloud")
+install.packages(txts)
+install.packages("Rwordseg", repos = "http://R-Forge.R-project.org")
 
 
 

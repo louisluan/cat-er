@@ -1,5 +1,5 @@
 library(Rwordseg)
-dictdir="C:\\programs\\dict\\"
+dictdir="C:\\programs\\R\\"
 
 dicts=c("Agu.scel","caiwu.scel","college.scel","daxie.scel","dianli.scel","falv.scel","fangchan.scel","ganggu.scel","gongshang.scel","gov.scel","gupiao.scel","hanyu.scel","jianzhu.scel","jixie.scel","kuaiji.scel","nongye.scel","place.scel","renli.scel","shuili.scel","waimao.scel","wuliu.scel","xiyao.scel","yejin.scel","zhongyao.scel")
 
@@ -14,4 +14,21 @@ segmentCN("ºËĞÄÄÜÁ¦ÒòÎª´æÔÚ¶şÑõ»¯Ì¼µÄÀÛ¼ÆÕÛ¾É£¬ËùÒÔÕ½ÂÔÉÏËÄ´¨ÀÖÉ½´ó·ğºÇºÇĞ¦ÁË£¬Õ
 
 segment.options(isNameRecognition = TRUE)
 egfile=paste(dictdir,"News0414.txt",sep="")
-segmentCN(egfile)
+segmentCN(egfile,returnType=c("tm"))
+
+library(tm)
+
+
+
+fileName= "C:\\programs\\dict\\News0414.segment.txt"
+
+
+ovid = Corpus(DirSource(dictdir, encoding = "UTF-8"),readerControl = list(language = "UTF-8"))
+
+inspect(ovid[1])
+dtm=DocumentTermMatrix(ovid,list("Ï°½üÆ½"))
+
+inspect(dtm)
+findFreqTerms(dtm,3)
+findAssocs(dtm, "Ï°½üÆ½", 0.2)
+

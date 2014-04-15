@@ -25,23 +25,26 @@ drop _merge
 merge 1:1 stkcd FY using SYNC
 drop if _merge~=3
 drop _merge
+merge 1:1 stkcd FY using Conservatism
+drop if _merge~=3
+drop _merge
 
 xtset stkcd FY
 //xtbalance,range(1,7)
 
 gen GrowthOpp=D.i_TOPincome/L.i_TOPincome
-gen Lev=b_TLiab/b_TA
+//gen Lev=b_TLiab/b_TA
 gen Cash=b_cash/b_TA
 gen ATO=i_TOPincome/b_TA
 gen Lage=FY+2005-listdate
-gen Size=ln(b_TA)
+//gen Size=ln(b_TA)
 gen ROA=i_netprofit/b_TA
 gen ROE=i_netprofit/b_TOE
 gen SubROE=i_PL4nonControl/b_LTEquityinvest
 gen LnVol=ln(yvol)
 gen TopShare2=topshare^2
 ren sync SYNC
-gen MtB=wclsprc/b_TA
+//gen MtB=wclsprc/b_TA
 
 
 gen INV=(cd_Tnetinvest-ci_amort-ci_intangileamort)/b_TA
@@ -54,7 +57,7 @@ predict OINV,res
 
 winsor2 OINV ,cut(1 99) replace
 
-keep stkcd FY INV OINV SYNC TopShare2 topshare LnVol SubROE ROE ROA Size MtB Lage ATO Cash Lev GrowthOpp
+
 
 save OINV_SYNC.dta,replace
 

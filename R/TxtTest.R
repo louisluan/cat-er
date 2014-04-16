@@ -19,16 +19,17 @@ segmentCN(egfile,returnType=c("tm"))
 library(tm)
 
 
-
+dictdir="C:\\programs\\R\\"
 fileName= "C:\\programs\\dict\\News0414.segment.txt"
 
 
 ovid = Corpus(DirSource(dictdir, encoding = "UTF-8"),readerControl = list(language = "UTF-8"))
 
 inspect(ovid[1])
-dtm=DocumentTermMatrix(ovid,list("习近平"))
-
+dtm=DocumentTermMatrix(ovid,list("军事"))
+dtm <- removeSparseTerms(dtm, sparse=0.80)
 inspect(dtm)
-findFreqTerms(dtm,3)
-findAssocs(dtm, "习近平", 0.2)
+inspect(dtm[,"现代化"])
+
+
 

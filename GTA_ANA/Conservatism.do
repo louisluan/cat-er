@@ -69,11 +69,18 @@ gen D=yrt<0
 
 ren yrt R
 
-reg EtP D R C.R#C.(Size MtB Lev) i.D#C.R i.D#C.R#C.(Size MtB Lev) Size MtB Lev  i.D#C.(Size MtB Lev)
-mat b=e(b)
+gen CScore=.
+gen GScore=.
 
-gen CScore=b[1,7]+b[1,9]*Size+b[1,11]*MtB+b[1,13]*Lev
-gen GScore=b[1,2]+b[1,3]*Size+b[1,4]*MtB+b[1,5]*Lev
+forval i=2(1)7 {
+
+cap reg EtP D R C.R#C.(Size MtB Lev) i.D#C.R i.D#C.R#C.(Size MtB Lev) Size MtB Lev  i.D#C.(Size MtB Lev) if FY==`i'
+cap mat b=e(b)
+
+replace CScore=b[1,7]+b[1,9]*Size+b[1,11]*MtB+b[1,13]*Lev if FY==`i'
+replace GScore=b[1,2]+b[1,3]*Size+b[1,4]*MtB+b[1,5]*Lev  if FY==`i'
+
+}
 
 //--------------------------Earnings Volatility conservatism-----------------
 

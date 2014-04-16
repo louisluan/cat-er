@@ -4,20 +4,35 @@ cap cd /Users/luisluan/data/GTA
 use OINV_SYNC.dta,clear
 
 
-qreg OINV Lev Cash Size ROA  ATO soetag d_fy* d_ind* , quantile(.75) nolog
-qreg OINV Lev Cash Size ROE  ATO soetag d_fy* d_ind* ,quantile(.75) nolog
 
-reg OINV Lev Cash Size ROA F(1/3).ROA ATO soetag d_fy* d_ind* ,vce(cluster stkcd)
-reg OINV Lev Cash Size ROE F(1/3).ROE ATO soetag d_fy* d_ind* ,vce(cluster stkcd)
 
-xtreg  OINV Lev Cash Size ROA F(1/3).ROA ATO soetag d_fy* d_ind* ,fe vce(cluster stkcd)
-xtreg  OINV Lev Cash Size ROE F(1/3).ROE ATO soetag d_fy* d_ind* ,fe vce(cluster stkcd)
+xtset stkcd FY
 
 
 
+//Blocks to test the moderation effect of CScore 
+winsor2 CScore SYNC OINV CScore GScore topshare TopShare2 LnVol Lev Cash Size ROA cons_Match cons_SDE,cut(1 99) replace
+
+reg SYNC OINV CScore topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+
+reg SYNC OINV cons_SDE topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+
+reg  SYNC c.CScore##c.OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+
+reg  SYNC c.cons_SDE##c.OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+
+xtreg SYNC c.cons_SDE##c.OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
 
 
 
+margins,at(cons_SDE=(0.01(0.05)0.9)) vsquish
+marginsplot
+marginsplot, recast(line) recastci(rline) ///
+             ytitle("SYNC") xtitle("Conservatism") title("Conservatism Marginal Effect") ///
+             ciopts(lpattern(dash))
+graph export CONS_MARGINAL_EFFECT_TO_SYNC.png
+
+/**     out-dated codes
 //blocks to test the mediation effect of OINV using other SubROE-OINV-sync model
 
 reg  SubROE OINV  Lev Cash Size ROA ATO soetag d_fy* d_ind*
@@ -36,6 +51,8 @@ reg  SYNC OINV SubROE Lev Cash Size ROA soetag d_fy* d_ind*
 est store SYNC_FULL_OLS
 xtreg  SYNC OINV SubROE Lev Cash Size ROA d_fy* ,fe //Last validate if SubROE and mediator OINV contributed to sync -- check the significance of a and b
 est store SYNC_Full_FE
+**/
+
 
 //blocks to output the descriptive statistics
 logout, save(SYNC_descriptives) excel replace: ///
@@ -60,4 +77,4 @@ outreg2 [SYNC_FULL_OLS SYNC_Full_FE] using FULL, excel replace ///
 	drop(d_*)   /// 
 	tdec(2) rdec(3) r2 e(F) dec(3)
 
-sgmediation SYNC,mv(SubROE) iv(OINV) cv(Lev Cash Size ROA d_fy*)
+sgmediation SYNC,mv(CScore) iv(OINV) cv(Lev Cash Size ROA d_fy*)

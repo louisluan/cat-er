@@ -1,0 +1,1 @@
+insheet using FR_T4.csv, name cleardrop typrepren t40801 ROEdrop if substr(accper,6,5)~="12-31"gen FY=real(substr(accper,1,4))xtset stkcd FYrolling SDROE=r(sd), window(6) saving(sdroe.dta,replace): summarize ROEmerge 1:1 stkcd FY using AAAdrop _mergextsum SDROEdrop ROEreplace FY=FY-2005drop if FY<1save cons_sdroe

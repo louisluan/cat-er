@@ -21,6 +21,10 @@ merge 1:1 stkcd FY using year_ret
 drop if _merge~=3
 drop _merge
 
+merge 1:1 stkcd FY using SDEBIT
+drop if _merge==2
+drop _merge
+
 xtset stkcd FY
 
 
@@ -85,10 +89,11 @@ replace GScore=b[1,2]+b[1,3]*Size+b[1,4]*MtB+b[1,5]*Lev  if FY==`i'
 //--------------------------Earnings Volatility conservatism-----------------
 
 gen EBIT=i_netprofit+ i_incometax+ i_interest
-by stkcd:egen SDEBIT=sd(EBIT)
-gen cons_SDE=SDEBIT/b_TA
-
-keep stkcd FY cons_SDE CScore GScore cons_Match cons_NonOpAcc R D Size MtB Lev yvol EtP
+by stkcd:egen SD_EBIT=sd(EBIT)
+replace b_TA=1 if b_TA<=0
+gen cons_SDE=SD_EBIT/b_TA
+//rolling SDEBIT=r(sd),windows(4) saving(SDEBIT,replace):sum EBIT
+keep stkcd FY cons_SDE CScore GScore cons_Match cons_NonOpAcc R D Size MtB Lev yvol EtP SDEBIT
 
 save Conservatism.dta,replace
 

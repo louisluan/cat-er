@@ -10,25 +10,29 @@ xtset stkcd FY
 
 
 
-//Blocks to test the moderation effect of CScore 
-winsor2 CScore SYNC OINV CScore GScore topshare TopShare2 LnVol Lev Cash Size ROA cons_Match cons_SDE,cut(1 99) replace
+//Blocks to winsorize data and gen descriptive statistics 
+winsor2   SYNC OINV cons_SDE CScore topshare  LnVol Lev Cash Size ROA  ,cut(1 99) replace
 
-reg SYNC OINV CScore topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
-
-reg SYNC OINV cons_SDE topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
-
-reg  SYNC c.CScore##c.OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
-
-reg  SYNC c.cons_SDE##c.OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
-
-xtreg SYNC c.cons_SDE##c.OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+pwcorr   SYNC OINV   cons_SDE  CScore topshare  LnVol Lev Cash Size ROA  
 
 
+reg  SYNC c.cons_SDE##c.OINV  topshare  LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+set seed 1
+reg  SYNC c.cons_SDE##c.OINV topshare  LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(bootstrap,reps(100))
+
+
+
+margins,at(OINV=(-0.2(0.05)0.18)) vsquish
+marginsplot
+marginsplot, recast(line) recastci(rline) ///
+             ytitle("同步性") xtitle("不确定性") title("不确定性边际效应") ///
+             ciopts(lpattern(dash))
+graph export OINV_MARGINAL_EFFECT_TO_SYNC.png
 
 margins,at(cons_SDE=(0.01(0.05)0.9)) vsquish
 marginsplot
 marginsplot, recast(line) recastci(rline) ///
-             ytitle("SYNC") xtitle("Conservatism") title("Conservatism Marginal Effect") ///
+             ytitle("同步性") xtitle("运营风险") title("运营风险边际效应") ///
              ciopts(lpattern(dash))
 graph export CONS_MARGINAL_EFFECT_TO_SYNC.png
 

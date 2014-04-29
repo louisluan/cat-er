@@ -8,20 +8,67 @@ use OINV_SYNC.dta,clear
 
 xtset stkcd FY
 
+gen OPRisk=(b_noteRCV+b_accountRCV+b_otherRCV)/b_TA
+
+
+
+
 
 
 //Blocks to winsorize data and gen descriptive statistics 
-winsor2   SYNC OINV cons_SDE CScore topshare  LnVol Lev Cash Size ROA  ,cut(1 99) replace
-
-pwcorr   SYNC OINV   cons_SDE  CScore topshare  LnVol Lev Cash Size ROA  
+winsor2   SYNC OINV Lev OPRisk  topshare  LnVol  Cash Size ROA  ,cut(1 99) replace
 
 
-reg  SYNC c.cons_SDE##c.OINV  topshare  LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+//Main regression block
+reg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*,vce(cluster stkcd)
+est store FULL
+
+reg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*
+est store OLS
+
 set seed 1
-reg  SYNC c.cons_SDE##c.OINV topshare  LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(bootstrap,reps(100))
+reg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*,vce(bootstrap,reps(500))
+est store BS
+
+reg  SYNC  OINV ROA topshare  LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
+est store H1
+
+reg  SYNC  OPRisk ROA topshare  LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
+est store H2
+
+reg  SYNC Lev ROA topshare  LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
+est store H3
 
 
+qreg SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*,q(0.5)
+est store MID
+xtreg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size , fe
+est store FE
 
+//blocks to output the regression results
+*----main reg results------------
+outreg2 [H1 H2 H3 FULL OLS BS] using SYNCANA, excel replace ///
+	title("SYNC") /// 
+	drop(d_*) adds(F,e(F),Wald,e(chi2))  /// 
+	tdec(2) rdec(3) dec(3)  adjr2 
+	
+	
+outreg2 [MID FE] using SYNCROBUST, excel replace ///
+	title("ROBUSTNESS") /// 
+	drop(d_*) adds(F,e(F),Wald,e(chi2))  /// 
+	tdec(2) rdec(3) dec(3)  
+	
+*Grammer of addstats,short for adds in parentheses is -(name1,scalar1,name2,scalar2)	
+	
+//blocks to output the descriptive statistics
+logout, save(SYNC_descriptives) excel replace: ///
+	tabstat SYNC  OINV Lev OPRisk ROA topshare  LnVol  Cash Size ROA ,s(min max mean median sd count) c(s) f(%6.2f)
+logout, save(SYNC_corr) excel replace: ///
+	pwcorr   SYNC OINV Lev  OPRisk ROA topshare  LnVol  Cash Size  
+
+
+	
+/**     out-dated codes
 margins,at(OINV=(-0.2(0.05)0.18)) vsquish
 marginsplot
 marginsplot, recast(line) recastci(rline) ///
@@ -36,7 +83,7 @@ marginsplot, recast(line) recastci(rline) ///
              ciopts(lpattern(dash))
 graph export CONS_MARGINAL_EFFECT_TO_SYNC.png
 
-/**     out-dated codes
+
 //blocks to test the mediation effect of OINV using other SubROE-OINV-sync model
 
 reg  SubROE OINV  Lev Cash Size ROA ATO soetag d_fy* d_ind*
@@ -56,29 +103,5 @@ est store SYNC_FULL_OLS
 xtreg  SYNC OINV SubROE Lev Cash Size ROA d_fy* ,fe //Last validate if SubROE and mediator OINV contributed to sync -- check the significance of a and b
 est store SYNC_Full_FE
 **/
-
-
-//blocks to output the descriptive statistics
-logout, save(SYNC_descriptives) excel replace: ///
-	tabstat SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO,s(min max mean median sd count) c(s) f(%6.2f)
-logout, save(SYNC_corr) excel replace: ///
-	pwcorr_a SubROE OINV SYNC  Size Cash Lev GrowthOpp INV ROA Lage ATO, star1(0.01) star5(0.05) star10(0.1)
-
-//blocks to output the regression results
-
-outreg2 [SubROE_OLS SubROE_FE] using SubROE, excel replace ///
-	title("SubROE") /// 
-	drop(d_*)   /// 
-	tdec(2) rdec(3) r2 e(F) dec(3)
 	
-outreg2 [SYNC_OINV_OLS SYNC_OINV_FE] using SYNC_OINV, excel replace ///
-	title("SYNC_OINV") /// 
-	drop(d_*)   /// 
-	tdec(2) rdec(3) r2 e(F) dec(3)
-	
-outreg2 [SYNC_FULL_OLS SYNC_Full_FE] using FULL, excel replace ///
-	title("FULL") /// 
-	drop(d_*)   /// 
-	tdec(2) rdec(3) r2 e(F) dec(3)
 
-sgmediation SYNC,mv(CScore) iv(OINV) cv(Lev Cash Size ROA d_fy*)

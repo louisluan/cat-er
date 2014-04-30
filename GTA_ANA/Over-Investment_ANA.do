@@ -10,40 +10,50 @@ xtset stkcd FY
 
 gen OPRisk=(b_noteRCV+b_accountRCV+b_otherRCV)/b_TA
 
+ren topshare TopShare
 
 
 
 
 
 //Blocks to winsorize data and gen descriptive statistics 
-winsor2   SYNC OINV Lev OPRisk  topshare  LnVol  Cash Size ROA  ,cut(1 99) replace
+winsor2   SYNC OINV Lev OPRisk  TopShare LnVol  Cash Size ROA  ,cut(1 99) replace
 
 
 //Main regression block
-reg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*,vce(cluster stkcd)
+
+reg  SYNC  OINV  OPRisk Lev ROA TopShare   LnVol  Cash Size   soetag d_fy* d_ind*,vce(cluster stkcd)
 est store FULL
 
-reg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*
+reg  SYNC  OINV  OPRisk Lev ROA TopShare   LnVol  Cash Size   soetag d_fy* d_ind*
 est store OLS
 
 set seed 1
-reg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*,vce(bootstrap,reps(500))
+reg  SYNC  OINV  OPRisk Lev ROA TopShare   LnVol  Cash Size   soetag d_fy* d_ind*,vce(bootstrap,reps(500))
 est store BS
 
-reg  SYNC  OINV ROA topshare  LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
+reg  SYNC  OINV ROA TopShare   LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
 est store H1
 
-reg  SYNC  OPRisk ROA topshare  LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
+reg  SYNC  OPRisk ROA TopShare   LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
 est store H2
 
-reg  SYNC Lev ROA topshare  LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
+reg  SYNC Lev ROA TopShare   LnVol  Cash Size  soetag d_fy* d_ind*,vce(cluster stkcd)
 est store H3
 
 
-qreg SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size   soetag d_fy* d_ind*,q(0.5)
+qreg SYNC  OINV  OPRisk Lev ROA TopShare   LnVol  Cash Size   soetag d_fy* d_ind*,q(0.5)
 est store MID
-xtreg  SYNC  OINV  OPRisk Lev ROA topshare  LnVol  Cash Size , fe
+xtreg  SYNC  OINV  OPRisk Lev ROA TopShare   LnVol  Cash Size , fe
 est store FE
+
+xtreg  SYNC  OINV  OPRisk Lev ROA TopShare  Cash c.LnVol##c.Size  d_fy*, fe
+margins,at(Size=(19.1(0.05)25)) vsquish
+marginsplot
+marginsplot, recast(line) recastci(rline) ///
+             ytitle("同步性") xtitle("对数资产规模") title("对数资产规模边际效应") ///
+             ciopts(lpattern(dash))
+graph export Size_MARGINAL_EFFECT_TO_SYNC.png
 
 //blocks to output the regression results
 *----main reg results------------
@@ -62,9 +72,9 @@ outreg2 [MID FE] using SYNCROBUST, excel replace ///
 	
 //blocks to output the descriptive statistics
 logout, save(SYNC_descriptives) excel replace: ///
-	tabstat SYNC  OINV Lev OPRisk ROA topshare  LnVol  Cash Size ROA ,s(min max mean median sd count) c(s) f(%6.2f)
+	tabstat SYNC  OINV Lev OPRisk ROA TopShare  LnVol  Cash Size ,s(min max mean median sd count) c(s) f(%6.2f)
 logout, save(SYNC_corr) excel replace: ///
-	pwcorr   SYNC OINV Lev  OPRisk ROA topshare  LnVol  Cash Size  
+	pwcorr   SYNC OINV Lev  OPRisk ROA TopShare  LnVol  Cash Size  
 
 
 	
@@ -91,12 +101,12 @@ est store SubROE_OLS
 xtreg  SubROE OINV  Lev Cash Size ROA ATO d_fy* ,fe     //Second validate if SubROE contributed to mediator OINV -- check the significance of a
 est store SubROE_FE
 
-reg  SYNC OINV topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+reg  SYNC OINV TopShare  LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
 est store SYNC_OINV_OLS
 xtreg  SYNC OINV Lev Cash Size ROA d_fy* ,fe //First validate if SubROE contributed to sync-- check the significance of c'
 est store SYNC_OINV_FE
 
-reg  SYNC OINV SubROE topshare TopShare2 LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
+reg  SYNC OINV SubROE TopShare  LnVol Lev Cash Size ROA soetag d_fy* d_ind*,vce(cluster stkcd)
 
 reg  SYNC OINV SubROE Lev Cash Size ROA soetag d_fy* d_ind*
 est store SYNC_FULL_OLS

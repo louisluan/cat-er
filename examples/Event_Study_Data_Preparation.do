@@ -1,51 +1,46 @@
-/*Combining event and stock data
-First, set memory to a large enough size so that you can do the rest of the operations below. 
-We will be creating some variables and possibly duplicating cases, so the dataset can get VERY BIG. 
-To check how much memory you have allocated, the command is query, and to check how big your file is, the command is describe.
-Now, we need to find out how many event dates there are for each company.
-Use the dataset of event dates and generate a variable that counts the number of event dates per company.*/
+/*
+由于有的公司有多次事件发生，第一步需要确认那些公司发生了具体N次事件，并将其回报率数据复制N次，
+视为不同的“公司”事件进行研究。
+第一步，利用事件日数据进行分公司时间数统计，留下唯一的计数
+*/
 
 use eventdates, clear
 by company_id: gen eventcount=_N
-*Cut the dataset down to just one observation for each company. Each company observation is associated with the count of event dates for that company. Save this as a new dataset - don't overwrite your dataset of event dates!
 by company_id: keep if _n==1
 sort company_id
 keep company_id eventcount 
 save eventcount,replace
 
-*The next step is to merge the new 'eventcount' dataset with your dataset of stock data.
+*将事件计数文件合并到原始的回报率数据中，以根据事件计数的情况复制发生多次事件公司的回报率为N次
 
 use stockdata, clear
 sort company_id
-merge company_id using eventcount
+merge m:1 company_id using eventcount //那边是唯一的，哪边就是1，不唯一的一边是m
 tab _merge
 keep if _merge==3
 drop _merge
 
-*Now use Stata's 'expand' command to create the duplicate observations. The 'eventcount' variable has been merged on to each stock observation, and tells Stata how many copies of that observation are needed. This is where your dataset can get VERY BIG, as we are duplicating the observations to however many counts of event we have per company.
-expand eventcount		 
-*You need to create a variable that indicates which 'set' of observations within the company each observation belongs to. Then sort the dataset to prepare for another merge.
+*关键命令，用expand扩充对应的公司到N次同样的收益率观测，以备后续合并
+expand eventcount,gen(duptag)
+*生成set变量，来记录多次事件公司具体的第几个set数据，后续合并和标识具体哪个事件用	 
 drop eventcount
 sort company_id date
 by company_id date: gen set=_n
 sort company_id set
 save stockdata2,replace
 
-
-*Back in your original event dates dataset - not the 'eventcount' one! You need to create a matching set variable to identify the different event dates within each company. The final step is to use the set variable to match each event date with a set of stock observations.
+*准备原始的事件日数据，也为多次事件的公司生成set变量，方便合并
 use eventdates, clear
 by company_id: gen set=_n
 sort company_id set
 save eventdates2,replace
 use stockdata2, clear
-merge company_id set using eventdates2
+merge m:1 company_id set using eventdates2
 tab _merge		 
-*Here, you may have observations where you have the events information but not stock information. You may examine which companies stock information is missing.
-		  
+*回报数据有缺失值		  
 list company_id if _merge==2 
 keep if _merge==3
 drop _merge
-*Finally, create a new variable that groups company_id and set so that you have a unique identifier to use in the rest of your analysis.
-		  
+*最后生成一个新的ID变量，group_id来唯一标识每一组数据，后续都用这个变量作id		  
 egen group_id = group(company_id set)	  
-*During the rest of your analysis, use group_id wherever the event study instructions say company_id. You're now ready to return to the Event Study with Stata page.
+save stockdata2,replace

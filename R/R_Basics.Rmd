@@ -1,0 +1,81 @@
+---
+title: "R_Basics"
+output: word_document
+---
+
+```{r basics}
+#生成一个正态分布的随机数矩阵100*100，用于后续使用
+d1<-matrix(rnorm(10000),ncol=10,nrow=1000)
+ncol(d1)
+dim(d1)
+#用字母给每列命名
+colnames(d1)<-LETTERS[1:10]
+#变成data.frame
+d1<-data.frame(d1)
+#查看df的列名
+names(d1)
+#查看df的结构
+str(d1)
+
+#列出大于2.5的第一列数值的位置
+which(d1$A>2.5)
+
+#NA和任何量运算结果都是NA，要特别注意,以第一列的前5行为例
+NA & d1$A[1:5]
+#判断是否都满足或者任意满足
+d1$A[1:10]
+all(d1$A[1:10]>0)
+any(d1$A[1:10]>0)
+#生成一个长度为1000的空向量，这个技巧用于循环通常大幅提高性能
+t1<-rep(NA,times=1000)
+#整体复制3次和逐个复制3次的区别
+rep(c(1,2,3),times=3) #整体
+rep(c(1,2,3),each=3)  #逐个
+#replicate是对某个函数运行多少次，如模拟扔硬币
+t2<-replicate(1000,rbinom(n=1,size=1,prob=0.5))
+hist(t2) #0,1频数
+hist(rbinom(n=2,size=1000,prob=0.5)) #次数
+
+#对t1进行条件赋值，大于0的t2赋给t1,用ifelse进行向量化操作
+t1<-ifelse(t2>0,t2,NA)
+#判断是否是NA缺失值
+is.na(t1[1:10])
+#查看不重复的唯一值
+unique(t1)
+#直接对有缺失值的向量计数得到的也是NA，所以得选择出非缺失的数值
+sum(t1)
+#注意常见的错误是直接用==或者!=判断是否是NA，这样得不到结果
+t1!=NA
+sum(t1[t1!=NA]) 
+#正确做法是用is.na
+sum(t1[!is.na(t1)]) 
+#放回抽样和不放回抽样
+t3<-1:5
+#不放回抽样
+sample(t3,size=4,replace=FALSE,prob=c(0.2,0.1,0.1,0.3,0.3)) 
+#放回抽样
+sample(t3,size=4,replace=TRUE,prob=c(0.2,0.1,0.1,0.3,0.3)) 
+#列出当前所有的对象，返回一个字符向量
+ls()
+
+#把字符向量的内容连接起来
+s1<-c("Hi","this","is","Tom")
+s2<-paste(s1,collapse = "-")
+s2
+#有趣的向量连接
+paste(s2,s1,sep="^")
+
+#显示一个对象占用的内存，以字节计算
+object.size(d1)
+
+#把字符变成时间，lubridate包更好，但是一般的as.Date()和as.POSIXlt也还可以
+tt1<-as.Date(Sys.Date())
+tt2<-as.POSIXlt(Sys.Date())
+#从1970-01-01至今的天数
+unclass(tt1)
+#具体的时间列表
+unclass(tt2)
+tt2$year
+
+```
+

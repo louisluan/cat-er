@@ -1,0 +1,77 @@
+---
+title: "dplyr_join_demo"
+output: word_document
+---
+```{r code}
+#下面内容来自互联网，为了方便学习dplyr包里的join合并数据操作
+#主要数据和内容参考：https://stat545-ubc.github.io/bit001_dplyr-cheatsheet.html
+
+#加载需要的包
+library(dplyr)
+library(plyr)
+library(stringr)
+library(knitr)
+
+#定义一个函数来处理将array转换为data.frame的列命名问题，将第一行变为列名，然后去掉第一行生成df
+norm_df<-function(df){
+  colnames(df)<-df[1,]              #定义上列名
+  df<-as.data.frame(df[-1,]) %>%    #去掉首行
+  tbl_df()                          #生成dplyr的tbl_df对象    
+  return(df)
+}
+
+#原始数据链式处理---------------------------------------
+superheroes <-
+  c("    name, alignment, gender,         publisher",
+    " Magneto,       bad,   male,            Marvel",
+    "   Storm,      good, female,            Marvel",
+    "Mystique,       bad, female,            Marvel",
+    "  Batman,      good,   male,                DC",
+    "   Joker,       bad,   male,                DC",
+    "Catwoman,       bad, female,                DC",
+    " Hellboy,      good,   male, Dark Horse Comics") %>%
+  laply(strsplit,",") %>%     #把vector根据，拆分成array
+  aaply(1,str_trim) %>%       #去掉每个character元素里的首尾空格，基于stringr包 
+  norm_df()
+
+publishers <- 
+  c("publisher, yr_founded",
+    "       DC,       1934",
+    "   Marvel,       1939",
+    "    Image,       1992") %>%
+  laply(strsplit,",") %>%     #把vector根据，拆分成array
+  aaply(1,str_trim) %>%       #去掉每个character元素里的首尾空格 
+  norm_df()                  
+
+#备注，以下演示省略了by参数，合并的数据可以是不同列名的，也可以是多列，使用的语法如下
+#left_join(d1, d2, by = c("x1" = "x2", "y1" = "y2"))
+#其中，x1 y1是d1数据的，x2 也是d2数据的，需要做成一个这样的向量来代表d1.x1==d2.x2 & d1.y1==d2.y2
+
+#演示inner_join----------------------------
+ijsp <- inner_join(superheroes, publishers)
+ijsp
+#Hellboy观测在合并数据中消失了，因为他的publisher是Dark Horse Comics并未在y的publisher中出现
+#因为inner join是只显示匹配的（两边都有的）观测
+
+#演示semi_join-----------------------------
+sjsp <- semi_join(superheroes, publishers)
+sjsp
+#结果与inner_join类似，匹配过后只得到了有左边superheros里的变量，右边df里的列没合并进来。
+
+#演示left_join-----------------------------
+ljsp <- left_join(superheroes, publishers)
+ljsp
+#这次是完全以左边为准，Hellboy观测没有匹配也予以保留了，只是其Yr_founded值变成了NA
+
+#演示anti_join-----------------------------
+ajsp <- anti_join(superheroes, publishers)
+ajsp
+#anti_join返回的是以左边为准在右边找不到匹配的观测，并且不会合并右边的变量
+
+#演示full_join-----------------------------
+fjsp <- full_join(superheroes, publishers)
+fjsp
+#full_join返回的是两边都有的数据，这个不丢失两边任何的观测
+
+```
+

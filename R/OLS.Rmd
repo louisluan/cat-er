@@ -1,0 +1,46 @@
+---
+title: "OLS"
+output: word_document
+---
+用Stata系统自带的auto.dta导出一份csv，读到R里面来展示OLS
+```{r data}
+autos <- tbl_df(read.csv("d:/auto.csv",header = TRUE)) %>%
+  print
+
+```
+
+运行OLS回归，将结果存入到ols1变量中,I表示隔离,:表示交互项的相乘关系，而*表示完全交互，隐含了主效用，事实上ols1和ols2的运行结果是相同的，里面的公式含义一致。
+```{r OLS}
+ols1<-lm(price~headroom+weight+I(headroom^2)+length+foreign:weight+foreign,data=autos)
+ols2<-lm(price~headroom+I(headroom^2)+length+foreign*weight,data=autos)
+
+#展示回归结果
+summary(ols1)
+summary(ols2)
+
+#展示factors类别变量的
+#beta
+coef(ols1)
+#残差
+resid(ols1)
+#对数似然值
+logLik(ols1)
+#AIC
+AIC(ols1)
+
+#拟合值或者预测时间序列的新值
+predict(ols1)
+
+#wald-test来模型对比,去掉length变量，两个模型对比
+ols3<-update(ols1, .~.-length)
+summary(ols3)
+
+#只显示系数检验
+coeftest(ols3)
+
+#结果显著，表明length这个变量效果是显著的
+waldtest(ols1,ols3)
+
+```
+
+

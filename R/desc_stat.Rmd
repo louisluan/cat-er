@@ -1,0 +1,48 @@
+---
+title: "Descriptive Stat"
+output: word_document
+---
+```{r describe}
+#使用AER包里提供的示例数据
+data("CPS1985")
+
+#查看数据结构和盖帽，先变成dplyr格式操作方便
+
+CPS1985 <- tbl_df(CPS1985)
+CPS1985
+str(CPS1985)
+
+#看工资的统计量
+summary(CPS1985$wage)
+var(CPS1985$wage)
+sd(CPS1985$wage)
+
+#统计类别变量
+
+table(CPS1985$occupation)
+
+table(CPS1985$occupation,CPS1985$gender)
+
+#马赛克图
+plot(gender~occupation, data=CPS1985)
+
+```
+
+```{r stats}
+#先带上CPS1985数据集，可以直接用变量
+attach(CPS1985)
+#计算两列的Pearson相关系数
+cor(log(wage),education)
+#计算两列的Spearman相关系数
+cor(log(wage), education, method = "spearman")
+#计算数据集的相关系数矩阵，此时只需要一个含多列的dataframe即可
+cor(select(CPS1985,wage,education,age,experience),method = "spearman")
+cor(select(CPS1985,wage,education,age,experience))
+
+#按照民族统计平均工资，tapply(被统计的对象，分组的量，函数)
+tapply(wage,ethnicity,mean)
+
+
+```
+
+

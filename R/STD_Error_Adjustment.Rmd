@@ -1,0 +1,78 @@
+---
+title: "R_SDERR"
+output: word_document
+---
+这是关于金融类文章如何计算不同回归标准误的R程序示例，主要参考：
+http://www.r-bloggers.com/fama-macbeth-and-cluster-robust-by-firm-and-time-standard-errors-in-r/
+需要提前加载的R包：plm,lmtest，sandwich
+参考文献： Thompson (2011, JFE) and Petersen (2008, WP)
+
+首先导入Petersen的测试数据：
+原始数据可从"http://www.kellogg.northwestern.edu/faculty/petersen/htm/papers/se/test_data.dta"
+下载，为Stata的dta格式，可以用foreign包里的read.dta直接读取。
+```{r data}
+test <- read.csv("d:/R_STDErr.csv") %>%
+  tbl_df %>%
+  print
+
+```
+
+进行Pooling OLS回归以及Fama-Macbeth回归，因为调整标准误不涉及beta估计量，所以只需调整标准误即可
+
+```{r reg}
+pols <- plm(y~x,test,model="pooling",index=c("firmid","year"))
+fmr <- pmg(y~x,test,index=c("year","firmid"))
+
+
+```
+
+定义函数来估计White异方差稳健标准误和双向聚类标准误的函数，,两个方向聚类之和减去White
+```{r FuncSTDErr}
+##Double-clustering formula (Thompson, 2011)
+vcovDC <- function(x, ...){
+    vcovHC(x, cluster="group", ...) + vcovHC(x, cluster="time", ...) -
+        vcovHC(x, method="white1", ...)
+}
+
+```
+估计普通OLS标准误
+```{r OLSStdErr}
+coeftest(pols)
+
+```
+估计White标准误
+```{r White Robust STDErr}
+coeftest(pols, vcov=function(x) vcovHC(x, method="white1", type="HC1"))
+
+```
+估计个体聚类标准误
+```{r Group Clustered STDErr}
+
+coeftest(pols, vcov=function(x) vcovHC(x, cluster="group", type="HC1"))
+
+```
+估计时间聚类标准误
+
+```{r Time Clustered STDErr }
+coeftest(pols, vcov=function(x) vcovHC(x, cluster="time", type="HC1"))
+
+```
+
+估计双向（时间和个体同时）聚类标准误
+
+```{r Double Clustered STDErr}
+
+coeftest(pols, vcov=function(x) vcovDC(x, type="HC1"))
+
+```
+注释： As Giovanni interestingly pointed out to me (in a privately circulated draft paper),it seems that the Fama-MacBeth estimator is nothing more than what econometricians call the Mean Groups estimator, and 'plm' can readily estimate this. You only need to swap the 'group' and 'time' indices.
+```{r FamaMacbeth}
+coeftest(fmr)
+
+```
+
+
+
+
+
+

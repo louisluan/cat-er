@@ -1,0 +1,93 @@
+---
+title: "Logit"
+output: word_document
+---
+Probit and Logit Models in R
+
+Copyright 2013 by Ani Katchova
+
+离散选择模型(微观计量)的R实现，主要参考Econometrics Academy
+https://sites.google.com/site/econometricsacademy/econometrics-models/probit-and-logit-models
+
+
+```{r}
+#读入数据
+mydata<- read.csv("d:/download/probit_insurance.csv") %>%
+  tbl_df %>%
+  print
+
+
+# 描述性统计
+summary(mydata$ins)
+summary(select(mydata,retire, age, hstatusg, hhincome, educyear, married, hisp))
+
+table(mydata$ins)
+table(mydata$ins)/sum(table(mydata$ins))
+
+#定义回归公式
+f1<-as.formula(ins~retire+age+hstatusg+hhincome+educyear+married+hisp)
+# OLS回归
+olsreg <- lm(f1,data=mydata)
+summary(olsreg)
+
+# Logit回归，假定Logistic残差
+logit<- glm(f1, ,data=mydata,family=binomial (link = "logit"))
+summary(logit) 
+
+
+
+# Probit 回归，假定正态残差
+probit<- glm(f1, data=mydata,family=binomial (link="probit"))
+summary(probit)
+
+#odds ratios
+exp(logit$coefficients)
+exp(probit$coefficients)
+
+# OLS边际效应，即beta
+coef(olsreg)
+
+# Logit回归平均边际效应
+LogitScalar <- mean(dlogis(predict(logit, type = "link")))
+LogitScalar * coef(logit)
+
+# Probit 回归平均边际效应
+ProbitScalar <- mean(dnorm(predict(probit, type = "link")))
+ProbitScalar * coef(probit)
+
+
+# OLS回归预测值（此处为概率）
+polsreg<- predict(olsreg)
+summary(polsreg)
+
+# Logit 模型预测概率
+plogit<- predict(logit, type="response")
+summary(plogit)
+
+# Probit 模型预测概率
+pprobit<- predict(probit, type="response")
+summary(pprobit)
+
+
+# 模型预测正确率
+table(true = mydata$ins, pred = round(fitted(probit)))
+table(true = mydata$ins, pred = round(fitted(logit))) 
+
+# McFadden's Pseudo R-squared 伪R方
+PseudoRsq <- function(m1,m2) {
+  McFadden<- 1-as.vector(logLik(m1)/logLik(m2))
+  return(McFadden)
+  
+}
+
+  
+probit0<-update(probit, formula= ins ~ 1)
+PseudoRsq(probit,probit0)
+
+
+logit0<-update(logit, formula= ins ~ 1)
+PseudoRsq(logit,logit0)
+
+
+```
+

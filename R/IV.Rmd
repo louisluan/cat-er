@@ -1,0 +1,105 @@
+---
+title: "IV"
+output: word_document
+---
+工具变量回归(2SLS法)
+
+Instrumental Variables in R
+
+Copyright 2013 by Ani Katchova
+
+公式里的外生变量需要全部包含在工具变量的子公式里，例如：
+如果公式里包含一个外生变量ex和内生变量en（工具变量iv的对象），
+正确地公式写法是：y ~ ex + en | ex + iv
+另外一种等价的写法是：y ~ ex + en | . - en + iv
+. - en表示除了公式左边内生变量之外的所有变量，这个写法适合外生变量较多的时候。
+
+
+作者Ani喜欢先定义好不同的变量，我不太喜欢这个方式，直接定义公式系统开销低
+
+Defining variables (Y1 dependent variable, Y2 endogenous variable)
+
+(X1 exogenous variables, X2 instruments, X2 instruments, overidentified case)
+
+Y1 <- cbind(logmedexpense)
+
+Y2 <- cbind(healthinsu)
+
+X1 <- cbind(illnesses, age, logincome)
+
+X2 <- cbind(ssiratio)
+
+X2alt <- cbind(ssiratio, firmlocation)
+
+
+
+
+```{r ivreg}
+
+
+mydata <- read.csv("d:/download/iv_health.csv") %>%
+  tbl_df %>%
+  print
+
+
+
+
+#定义公式
+
+#OLS
+f_ols<-logmedexpense~healthinsu+illnesses+age+logincome
+
+#IV,其中healthinsu内生，ssiratio为工具变量,注意.-的中的点
+f_iv1<-logmedexpense~healthinsu+illnesses+age+logincome|.-logmedexpense+ssiratio
+
+#IV的等价写法
+f_iv2<-logmedexpense~healthinsu+illnesses+age+logincome|illnesses+age+logincome+ssiratio
+
+#额外的IV变量
+f_iv3<-logmedexpense~healthinsu+illnesses+age+logincome|.-healthinsu+ssiratio+firmlocation
+
+# 描述性统计
+summary(select(mydata,logmedexpense,healthinsu,
+               illnesses, age, logincome,ssiratio, firmlocation))
+
+
+# OLS 回归
+olsreg <- lm(f_ols,data=mydata)
+summary(olsreg)
+
+# 2SLS 工具变量护轨
+ivreg1 <- ivreg(f_iv1,data=mydata)
+summary(ivreg1)
+
+ivreg2 <- ivreg(f_iv2,data=mydata)
+summary(ivreg2)
+
+# 2SLS 分步估计 (details)
+#第一第一步的回归公式
+f_stage1<-healthinsu~illnesses+age+logincome+ssiratio
+#第一阶段OLS回归，拟合值代入Y2hat
+olsreg1 <- lm (f_stage1,data=mydata)
+summary(olsreg1)
+Y2hat <- fitted(olsreg1)
+
+#第二阶段回归的公式
+f_stage2<-logmedexpense~Y2hat+illnesses+age+logincome
+
+olsreg2 <- lm(f_stage2,data=mydata)
+summary(olsreg2)
+
+# 2SLS 估计的过度识别
+ivreg_o <- ivreg(f_iv3,data=mydata)
+
+summary(ivreg_o,diagnostics = TRUE)
+
+
+# Hausman test for endogeneity of regressors 
+#AER包新版的summary的diganostic选项包含了下面的检验，所以没什么意义了
+cf_diff <- coef(ivreg1) - coef(olsreg)
+vc_diff <- vcov(ivreg1) - vcov(olsreg)
+x2_diff <- as.vector(t(cf_diff) %*% solve(vc_diff) %*% cf_diff)
+pchisq(x2_diff, df = 2, lower.tail = FALSE)
+
+
+```

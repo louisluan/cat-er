@@ -1,0 +1,39 @@
+---
+title: "SampleSelection"
+output: word_document
+---
+直接使用sampleSelection包自带的示例
+
+参照（Greene，2003）的示例example 22.8, page 786
+
+```{r}
+require(sampleSelection)
+data(Mroz87)
+Mroz87$kids  <- ( Mroz87$kids5 + Mroz87$kids618 > 0 )
+
+
+# Heckman两阶段估计
+heck<- heckit( lfp ~ age + I( age^2 ) + faminc + kids + educ,
+                 wage ~ exper + I( exper^2 ) + educ + city, data=Mroz87 )
+
+# 极大似然估计
+ml<-selection( lfp ~ age + I( age^2 ) + faminc + kids + educ,
+                    wage ~ exper + I( exper^2 ) + educ + city, data=Mroz87 ) 
+
+summary(heck)
+summary(ml)
+
+
+## Example using binary outcome for selection model.
+## We estimate the probability of womens' education on their
+## chances to get high wage (> $5/hr in 1975 USD), using PSID data
+## We use education as explanatory variable
+## and add age, kids, and non-work income as exclusion restrictions.
+
+m <- selection(lfp ~ educ + age + kids5 + kids618 + nwifeinc,
+               wage >= 5 ~ educ, data = Mroz87 )
+summary(m)
+
+
+```
+

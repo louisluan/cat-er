@@ -1,0 +1,57 @@
+---
+title: "PanelData"
+output: word_document
+---
+R作Panel Data回归不同估计量的语法，数据和主要程序参考Econometrics Academy
+https://sites.google.com/site/econometricsacademy/econometrics-models/panel-data-models
+# Panel Data Models in R
+# Copyright 2013 by Ani Katchova
+
+
+```{r data}
+
+
+#读入数据,并设置为Panel Data
+mydata<- read.csv("D:/download/panel_wage.csv") %>%
+  plm.data(index=c("id","t")) %>%
+  tbl_df %>%
+  print
+  
+
+# 描述性统计
+summary(mydata$lwage)
+summary(select(mydata,exp, exp2, wks, ed))
+
+# 混合OLS估计量
+pooling <- plm(lwage~exp+exp2+wks+ed, data=mydata, model= "pooling")
+summary(pooling)
+
+# 组间估计量
+between <- plm(lwage~exp+exp2+wks+ed, data=mydata, model= "between")
+summary(between)
+
+# 一阶差分估计量
+
+firstdiff <- plm(lwage~exp+exp2+wks+ed, data=mydata, model= "fd")
+summary(firstdiff)
+
+# 固定效应估计量
+fixed <- plm(lwage~exp+exp2+wks+ed, data=mydata, model= "within")
+summary(fixed)
+
+# 随机效应估计量
+random <- plm(lwage~exp+exp2+wks+ed, data=mydata, model= "random")
+summary(random)
+
+# 随机效应 VS OLS 的LM检验
+plmtest(pooling)
+
+# 固定效应 VS OLS的LM检验
+pFtest(fixed, pooling)
+
+# 固定效应 VS 随机效应的Hausman 检验
+phtest(random, fixed)
+
+
+```
+

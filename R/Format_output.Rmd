@@ -1,0 +1,99 @@
+---
+title: "Format_Output"
+output: word_document
+---
+回归结束需要格式化输出，常见的表格输出主要有三种：
+
+1. 描述性统计
+2. 相关系数矩阵
+3. 回归结果
+
+解决方案统一用stargazer包，语法也比较统一。
+
+这比Stata分别用logout,outreg2方便的多，结果也更美观。
+
+下面的示例还是用样本选择模型自带的数据，重点演示如何输出。
+
+stargazer支持输出到txt,latex,html。
+
+html可以直接复制到excel或word里再稍微调整即可。
+
+```{r data}
+require(sampleSelection)
+data(Mroz87)
+Mroz87$kids  <- ( Mroz87$kids5 + Mroz87$kids618 > 0 )
+
+
+# Heckman两阶段估计
+heck<- heckit( lfp ~ age + I( age^2 ) + faminc + kids + educ,
+               wage ~ exper + I( exper^2 ) + educ + city+ kids, data=Mroz87 )
+
+# 极大似然估计
+ml<-selection( lfp ~ age + I( age^2 ) + faminc + kids + educ,
+               wage ~ exper + I( exper^2 ) + educ + city+ kids, data=Mroz87 ) 
+
+
+
+m <- selection(lfp ~ educ + age + kids5 + kids618 + nwifeinc,
+               wage >= 5 ~ educ, data = Mroz87 )
+
+```
+
+自定义了个corr函数来输出相关系数矩阵，下三角是Pearson上三角Spearman。
+
+看了下SAS和Stata相关code感觉还是R简单明了。
+
+corr(x)只接收一个数据框或者矩阵参数。
+
+```{r corr}
+
+corr<-function(x){
+  p_cor<-cor(x);
+  s_cor<-cor(x,method="spearman");
+  p_cor[upper.tri(p_cor)==TRUE]<-s_cor[upper.tri(s_cor)==TRUE];
+  return(p_cor);
+}
+
+
+
+```
+
+分别输出描述性统计，相关系数矩阵和回归结果。
+
+stargazer对dplyr支持的很好，直接就能输出select的结果。
+
+
+```{r output}
+#描述性统计输出，summary.logical控制是否输出逻辑型变量
+
+stargazer(select(Mroz87,lfp,educ,age,faminc,kids,city),
+          type="html",title="Descriptive Statistics",
+          out.header=TRUE,summary.logical=FALSE,
+          digits=2,median=TRUE,
+          out="d:/descriptives.htm"
+          )
+
+#相关系数矩阵输出
+stargazer(corr(select(Mroz87,lfp,educ,age,faminc)),
+          type="html",title="Correlations",
+          out.header=TRUE,summary.logical=FALSE,
+          digits=2,median=TRUE,
+          out="d:/cor.htm",
+          notes="Pearson correlation lower block and Spearman correlation upper block"
+)
+
+#ml,m,heck为模型变量，html输出方便复制到excel里调整
+#vc*p代表星号放在coef上，如果vcp*星号就放P值上了，无report选项默认汇报标准误
+#omit用来控制不显示特定的自变量，通常是dummy，omit.labels的长度得和omit数一致
+stargazer(ml,m,heck,type="html",title="selection regression table",
+          report="vc*p",digits=3,
+          dep.var.labels=c("wage","wage0-1","wages"),
+          model.names=FALSE,model.numbers=TRUE,
+          column.labels=c("ML","Heck"),column.separate=c(2,1),
+          header=FALSE,
+          omit="kids",omit.labels="kids dummy",
+          flip=TRUE,out.header=TRUE,out="d:/reg.htm")
+
+
+```
+
